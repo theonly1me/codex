@@ -137,6 +137,42 @@ impl App {
             event => (event, None),
         };
         match event {
+            AppEvent::ClaudeModCopy { text } => {
+                let result = tui.clipboard.copy(std::sync::Arc::from(text), crate::clipboard_copy::CopyFormat::PlainText, tui.frame_requester());
+                self.chat_widget.show_copy_result("mod text", result);
+            }
+            AppEvent::ClaudeModRefresh => self.refresh_claude_mods(app_server),
+            AppEvent::ClaudeModCommand { plugin_id, name, arguments } => self.run_claude_mod_command(app_server, plugin_id, name, arguments),
+            AppEvent::ClaudeModControl { interaction } => self.control_claude_mod(app_server, interaction),
+            AppEvent::ClaudeModFrames { thread_id, result } => {
+                if self.chat_widget.thread_id().is_some_and(|id| id.to_string() == thread_id) {
+                    match result {
+                        Ok((catalog, trees)) => {
+                            self.chat_widget.mod_ui.commands = catalog.commands;
+                            self.chat_widget.mod_ui.panes = catalog.panes;
+                            self.chat_widget.set_mod_command_names();
+                            self.chat_widget.mod_frames(trees);
+                        }
+                        Err(error) => {
+                            self.chat_widget.mod_ui.pending = false;
+                            self.chat_widget.add_error_message(format!("Mod UI: {error}"));
+                        }
+                    }
+                }
+            }
+            AppEvent::ClaudeModCommandResult { thread_id, result } => {
+                if self.chat_widget.thread_id().is_some_and(|id| id.to_string() == thread_id) {
+                    match result {
+                        Ok(text) if !text.is_empty() => {
+                            let hint = None;
+                            self.chat_widget.add_info_message(text, hint);
+                        }
+                        Ok(_) => {},
+                        Err(error) => self.chat_widget.add_error_message(format!("Mod: {error}")),
+                    }
+                    self.chat_widget.refresh_mod_ui();
+                }
+            }
             AppEvent::OpenDaemonMenu => self.open_daemon_menu(),
             AppEvent::ConfirmDaemonUpdate(source) => self.confirm_daemon_update(source),
             AppEvent::RunDaemonUpdate(source) => {
@@ -875,6 +911,7 @@ impl App {
                 tui.frame_requester().schedule_frame();
             }
             AppEvent::InsertHistoryCell(cell) => {
+                let cell = self.decorate_mod_history(app_server, cell).await;
                 self.insert_history_cell(tui, cell);
             }
             AppEvent::TurnTipReady { thread_id, turn_id } => {

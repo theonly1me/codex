@@ -1,3 +1,5 @@
+mod extension_hooks;
+
 mod compact;
 mod lifecycle;
 mod regular;
@@ -825,8 +827,13 @@ impl Session {
             if reason == TurnAbortReason::Interrupted {
                 run_turn_interrupt_hooks(self, &turn_context, &turn_state).await;
             }
-            self.emit_turn_abort_lifecycle(reason.clone(), turn_context.extension_data.as_ref())
-                .await;
+            self.emit_extension_turn_abort(
+                &turn_context,
+                reason.clone(),
+                last_agent_message.as_deref(),
+                duration_ms,
+            )
+            .await;
             EventMsg::TurnAborted(TurnAbortedEvent {
                 root_turn_id: Some(turn_context.root_turn_id()),
                 turn_id: Some(turn_context.sub_id.clone()),
@@ -842,8 +849,12 @@ impl Session {
                 .time_to_first_token_ms()
                 .await;
             let error = turn_context.terminal_error.lock().await.clone();
-            self.emit_turn_stop_lifecycle(turn_context.extension_data.as_ref())
-                .await;
+            self.emit_extension_turn_stop(
+                &turn_context,
+                last_agent_message.as_deref(),
+                duration_ms,
+            )
+            .await;
             EventMsg::TurnComplete(TurnCompleteEvent {
                 root_turn_id: Some(turn_context.root_turn_id()),
                 turn_id: turn_context.sub_id.clone(),
@@ -1010,7 +1021,8 @@ impl Session {
                 turn_id: task.turn_context.sub_id.clone(),
                 profile,
             });
-        self.emit_turn_abort_lifecycle(reason.clone(), task.turn_context.extension_data.as_ref())
+        let answer = None;
+        self.emit_extension_turn_abort(&task.turn_context, reason.clone(), answer, duration_ms)
             .await;
         let event = EventMsg::TurnAborted(TurnAbortedEvent {
             root_turn_id: Some(task.turn_context.root_turn_id()),

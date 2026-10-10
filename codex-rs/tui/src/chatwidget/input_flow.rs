@@ -50,6 +50,9 @@ impl ChatWidget {
                 text,
                 text_elements,
             } => {
+                if self.dispatch_mod_command(&text) {
+                    return;
+                }
                 let user_message = self.user_message_from_submission(text, text_elements);
                 if user_message.text.is_empty()
                     && user_message.local_images.is_empty()
@@ -88,6 +91,9 @@ impl ChatWidget {
                 action,
                 pending_pastes,
             } => {
+                if action == QueuedInputAction::Plain && self.dispatch_mod_command(&text) {
+                    return;
+                }
                 let user_message = self.user_message_from_submission(text, text_elements);
                 if self.queue_user_message_with_options(user_message, action, pending_pastes) {
                     self.app_event_tx.send(AppEvent::FollowTranscript);

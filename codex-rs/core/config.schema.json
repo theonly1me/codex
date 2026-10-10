@@ -3651,6 +3651,10 @@
           },
           "description": "Per-MCP-server policy overlays for MCP servers contributed by this plugin.",
           "type": "object"
+        },
+        "options": {
+          "additionalProperties": true,
+          "type": "object"
         }
       },
       "type": "object"

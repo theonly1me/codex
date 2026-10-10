@@ -5,6 +5,8 @@
 #[cfg(any(target_os = "windows", test))]
 mod ssh_config_dependencies;
 
+#[cfg(any(windows, test))]
+mod account_password;
 #[doc(hidden)]
 pub mod environment_transport;
 #[cfg(any(windows, test))]

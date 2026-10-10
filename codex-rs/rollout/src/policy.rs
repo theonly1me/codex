@@ -129,6 +129,7 @@ fn persisted_event_msg(
     history_mode: ThreadHistoryMode,
 ) -> Option<Cow<'_, EventMsg>> {
     match ev {
+        EventMsg::ClaudeMod(_) => None,
         EventMsg::ItemCompleted(event) => persisted_item_completed_event(ev, event, history_mode),
         EventMsg::TokenCount(_)
         | EventMsg::ThreadGoalUpdated(_)

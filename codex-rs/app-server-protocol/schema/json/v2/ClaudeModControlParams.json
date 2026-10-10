@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ClaudeModInteraction": {
+      "oneOf": [
+        {
+          "properties": {
+            "callback_id": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "callback"
+              ],
+              "type": "string"
+            },
+            "value": true
+          },
+          "required": [
+            "callback_id",
+            "kind",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "close"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "plugin_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "element": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "is_focused": {
+              "type": "boolean"
+            },
+            "kind": {
+              "enum": [
+                "focus"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "is_focused",
+            "kind",
+            "plugin_id"
+          ],
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "interaction": {
+      "$ref": "#/definitions/ClaudeModInteraction"
+    },
+    "threadId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "interaction",
+    "threadId"
+  ],
+  "title": "ClaudeModControlParams",
+  "type": "object"
+}

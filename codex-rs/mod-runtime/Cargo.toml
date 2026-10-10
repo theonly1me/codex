@@ -1,0 +1,32 @@
+[package]
+name = "codex-mod-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "codex_mod_runtime"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+codex-code-mode-runtime = { workspace = true }
+codex-utils-plugins = { workspace = true }
+futures = { workspace = true }
+oxc_allocator = "=0.146.0"
+oxc_codegen = "=0.146.0"
+oxc_parser = "=0.146.0"
+oxc_semantic = "=0.146.0"
+oxc_span = "=0.146.0"
+oxc_transformer = "=0.146.0"
+serde_json = { workspace = true }
+tokio-util = { workspace = true }
+tokio = { workspace = true, features = ["rt", "sync", "time", "macros"] }
+tracing = { workspace = true }
+v8 = { workspace = true, features = ["v8_enable_sandbox"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }

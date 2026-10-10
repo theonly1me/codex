@@ -3,6 +3,9 @@ on:
   workflow_call:
   workflow_dispatch:
 
+env:
+  CODEX_CI_MSVC_RUNTIME_LICENSE_ACCEPTED: ${{ vars.CODEX_CI_MSVC_RUNTIME_LICENSE_ACCEPTED }}
+
 jobs:
   # --- Detect changed paths so the fast PR workflow only runs relevant jobs ---
   changed:
@@ -163,8 +166,8 @@ jobs:
 
   argument_comment_lint_prebuilt:
     name: Argument comment lint - ${{ matrix.name }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
-    timeout-minutes: ${{ matrix.timeout_minutes }}
+    runs-on: ${{ fromJSON(vars.CODEX_CI_RUNNERS || '{}')[matrix.runner] || matrix.runs_on || matrix.runner }}
+    timeout-minutes: ${{ fromJSON(vars.CODEX_CI_RUNNERS || '{}')['build-timeout-minutes'] || matrix.timeout_minutes }}
     needs: changed
     environment:
       name: bazel

@@ -263,6 +263,9 @@ if [[ "${RUNNER_OS:-}" == "Windows" && $windows_cross_compile -eq 1 && -z "${BUI
 fi
 
 post_config_bazel_args=()
+if [[ "${RUNNER_OS:-}" == "Windows" && "${CODEX_CI_MSVC_RUNTIME_LICENSE_ACCEPTED:-}" == "1" ]]; then
+  post_config_bazel_args+=(--repo_env=BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA=1)
+fi
 if [[ "${RUNNER_OS:-}" == "Windows" && $windows_msvc_host_platform -eq 1 ]]; then
   has_host_platform_override=0
   for arg in "${bazel_args[@]}"; do
@@ -303,8 +306,17 @@ if [[ "${RUNNER_OS:-}" == "Windows" && $windows_cross_compile -eq 1 && -z "${BUI
   # The Windows cross-compile config depends on authenticated remote
   # execution. When credentials are unavailable, keep the local build shape
   # and its lower concurrency cap.
-  post_config_bazel_args+=(--jobs=8)
+  post_config_bazel_args+=(
+    --jobs=8
+    --platforms=//:windows_x86_64_gnullvm
+    --extra_execution_platforms=//:windows_x86_64_msvc
+    --extra_toolchains=//:windows_gnullvm_tests_on_msvc_host_toolchain
+    --extra_toolchains=//.github/fork:native_windows_msvc
+    --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0
+  )
 fi
+
+source "$(dirname "${BASH_SOURCE[0]}")/../fork/local-bazel.sh"
 
 if [[ -n "${BAZEL_REPO_CONTENTS_CACHE:-}" ]]; then
   # Windows self-hosted runners can run multiple Bazel jobs concurrently. Give

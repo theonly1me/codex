@@ -207,6 +207,8 @@ pub(crate) mod agents_overview_discovery;
 mod agents_overview_threads;
 mod agents_overview_usage;
 mod agents_overview_view;
+mod claude_mods;
+mod mod_history;
 pub(crate) use agents_overview::AGENTS_OVERVIEW_VIEW_ID;
 mod activity_groups;
 mod app_server_event_targets;
@@ -1094,6 +1096,9 @@ impl App {
                     if self.backtrack_render_pending && !tui.is_owned_screen() {
                         self.rebuild_transcript_after_backtrack(tui, screen_size.into())?;
                         self.backtrack_render_pending = false;
+                    }
+                    if matches!(event, TuiEvent::Resize(_)) {
+                        self.chat_widget.refresh_mod_ui();
                     }
                     self.chat_widget.maybe_post_pending_notification(tui);
                     if self

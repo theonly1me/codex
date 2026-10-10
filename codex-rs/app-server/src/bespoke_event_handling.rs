@@ -152,6 +152,16 @@ pub(crate) async fn apply_bespoke_event_handling(
         msg,
     } = event;
     match msg {
+        EventMsg::ClaudeMod(event) => {
+            outgoing
+                .send_server_notification(ServerNotification::ClaudeModChanged(
+                    codex_app_server_protocol::ClaudeModChangedNotification {
+                        thread_id: conversation_id.to_string(),
+                        event,
+                    },
+                ))
+                .await;
+        }
         EventMsg::TurnStarted(payload) => {
             // While not technically necessary as it was already done on TurnComplete, be extra cautios and abort any pending server requests.
             outgoing.abort_pending_server_requests().await;

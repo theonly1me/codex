@@ -383,7 +383,7 @@ impl ChatComposer {
                                     |(_, args, _)| parent_owned_command_is_allowed(*cmd, args),
                                 )
                             }
-                            CommandItem::ServiceTier(_) => false,
+                            CommandItem::ServiceTier(_) | CommandItem::Mod(_) => false,
                         };
                         if !command_is_allowed {
                             return (InputResult::ParentOwnedInputBlocked, true);
@@ -407,6 +407,10 @@ impl ChatComposer {
                     return (
                         match sel {
                             CommandItem::Builtin(cmd) => InputResult::Command(cmd),
+                            CommandItem::Mod(name) => InputResult::Submitted {
+                                text: format!("/{name}"),
+                                text_elements: Vec::new(),
+                            },
                             CommandItem::ServiceTier(command) => {
                                 InputResult::ServiceTierCommand(command)
                             }

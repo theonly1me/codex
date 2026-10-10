@@ -24,6 +24,10 @@ pub struct FinalMessageSeparator {
     clock_format: ClockFormat,
 }
 impl FinalMessageSeparator {
+    pub(crate) fn duration_ms(&self) -> Option<u64> {
+        self.elapsed_seconds
+            .and_then(|seconds| seconds.checked_mul(1000))
+    }
     /// Creates completion metadata using the protocol turn duration when available.
     pub(crate) fn new(
         elapsed_seconds: Option<u64>,

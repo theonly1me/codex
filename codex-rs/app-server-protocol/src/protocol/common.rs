@@ -921,6 +921,26 @@ client_request_definitions! {
         serialization: global("config"),
         response: v2::MarketplaceUpgradeResponse,
     },
+    ClaudeModList => "claudeMod/list" {
+        params: v2::ClaudeModListParams,
+        serialization: None,
+        response: v2::ClaudeModListResponse,
+    },
+    ClaudeModCommand => "claudeMod/command" {
+        params: v2::ClaudeModCommandParams,
+        serialization: None,
+        response: v2::ClaudeModCommandResponse,
+    },
+    ClaudeModRender => "claudeMod/render" {
+        params: v2::ClaudeModRenderParams,
+        serialization: None,
+        response: v2::ClaudeModRenderResponse,
+    },
+    ClaudeModControl => "claudeMod/control" {
+        params: v2::ClaudeModControlParams,
+        serialization: None,
+        response: v2::ClaudeModControlResponse,
+    },
     PluginList => "plugin/list" {
         params: v2::PluginListParams,
         serialization: None,
@@ -1948,6 +1968,7 @@ pub struct FuzzyFileSearchSessionCompletedNotification {
 server_notification_definitions! {
     /// NEW NOTIFICATIONS
     Error => "error" (v2::ErrorNotification),
+    ClaudeModChanged => "claudeMod/changed" (v2::ClaudeModChangedNotification),
     ThreadStarted => "thread/started" (v2::ThreadStartedNotification),
     ThreadStatusChanged => "thread/status/changed" (v2::ThreadStatusChangedNotification),
     #[experimental("thread/readState/changed")]

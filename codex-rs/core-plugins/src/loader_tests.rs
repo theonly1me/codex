@@ -377,6 +377,7 @@ fn configured_plugins_from_stack_merges_enabled_effective_layers() {
                 "base".to_string(),
                 PluginConfig {
                     enabled: Some(true),
+                    options: serde_json::Map::new(),
                     mcp_servers: HashMap::new(),
                 },
             ),
@@ -384,6 +385,7 @@ fn configured_plugins_from_stack_merges_enabled_effective_layers() {
                 "profile".to_string(),
                 PluginConfig {
                     enabled: Some(true),
+                    options: serde_json::Map::new(),
                     mcp_servers: project_mcp_servers.clone(),
                 },
             ),
@@ -391,6 +393,7 @@ fn configured_plugins_from_stack_merges_enabled_effective_layers() {
                 "system".to_string(),
                 PluginConfig {
                     enabled: Some(true),
+                    options: serde_json::Map::new(),
                     mcp_servers: HashMap::new(),
                 },
             ),

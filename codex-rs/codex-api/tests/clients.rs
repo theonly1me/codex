@@ -338,6 +338,7 @@ async fn responses_client_stream_request_preserves_item_ids() -> Result<()> {
     let transport = RecordingTransport::new(state.clone());
     let client = ResponsesClient::new(transport, provider("openai"), Arc::new(NoAuth));
     let request = ResponsesApiRequest {
+        max_output_tokens: None,
         model: "gpt-test".into(),
         input: vec![ResponseItem::Message {
             id: Some(ResponseItemId::with_suffix("msg", "1")),
@@ -392,6 +393,7 @@ async fn responses_client_stream_request_sends_routing_fields_ahead_of_large_inp
     // buffering a potentially multi-megabyte prompt first.
     let large_input = "x".repeat(2 * 1024 * 1024);
     let request = ResponsesApiRequest {
+        max_output_tokens: None,
         model: "gpt-test".into(),
         input: vec![ResponseItem::Message {
             id: None,
@@ -488,6 +490,7 @@ async fn streaming_client_retries_on_transport_error() -> Result<()> {
     provider.retry.max_attempts = 2;
 
     let request = ResponsesApiRequest {
+        max_output_tokens: None,
         model: "gpt-test".into(),
         input: Vec::new(),
         tools: Some(empty_tools().into()),
@@ -602,6 +605,7 @@ async fn azure_store_sends_ids_and_headers() -> Result<()> {
     let client = ResponsesClient::new(transport, provider("azure"), Arc::new(NoAuth));
 
     let request = ResponsesApiRequest {
+        max_output_tokens: None,
         model: "gpt-test".into(),
         input: vec![ResponseItem::Message {
             id: Some(ResponseItemId::with_suffix("msg", "1")),

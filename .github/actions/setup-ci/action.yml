@@ -11,6 +11,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Reclaim unused SDK space on hosted Linux runners
+      if: runner.os == 'Linux' && runner.environment == 'github-hosted' && fromJSON(vars.CODEX_CI_RUNNERS || '{}')['reclaim-hosted-linux-space'] == true
+      shell: bash
+      run: bash .github/fork/reclaim-linux-space.sh
+
     # setup-ci expects either this step or the Unix fallback below to define
     # CI_BUILD_ROOT. Windows uses a Dev Drive because Cargo and Bazel
     # spend significant time reading and writing build/cache trees.

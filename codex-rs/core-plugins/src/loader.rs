@@ -379,6 +379,7 @@ pub fn remote_installed_plugins_to_config(
                 plugin_id.as_key(),
                 PluginConfig {
                     enabled: Some(plugin.enabled),
+                    options: serde_json::Map::new(),
                     mcp_servers: HashMap::new(),
                 },
             ))

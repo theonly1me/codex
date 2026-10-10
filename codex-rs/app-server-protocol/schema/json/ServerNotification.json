@@ -653,6 +653,274 @@
       ],
       "type": "object"
     },
+    "ClaudeModChangedNotification": {
+      "properties": {
+        "event": {
+          "$ref": "#/definitions/ClaudeModEvent"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "event",
+        "threadId"
+      ],
+      "type": "object"
+    },
+    "ClaudeModEvent": {
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "copy"
+              ],
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "text"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "themePicker"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "title": "ThemePickerClaudeModEvent",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "command": {
+              "$ref": "#/definitions/ModCommand"
+            },
+            "kind": {
+              "enum": [
+                "command"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "command",
+            "kind"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "open"
+              ],
+              "type": "string"
+            },
+            "pane": {
+              "$ref": "#/definitions/ModPane"
+            }
+          },
+          "required": [
+            "kind",
+            "pane"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "close"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "plugin_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "invalidate"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "plugin_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "cells": {
+              "type": "string"
+            },
+            "key": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "raster"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "cells",
+            "key",
+            "kind",
+            "plugin_id",
+            "request_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "status"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            },
+            "text": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "plugin_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "toast"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "plugin_id",
+            "text"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "promptFill"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "plugin_id",
+            "text"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "config"
+              ],
+              "type": "string"
+            },
+            "value": true
+          },
+          "required": [
+            "key",
+            "kind",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
+              "enum": [
+                "error"
+              ],
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "message",
+            "plugin_id"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "CodexErrorInfo": {
       "anyOf": [
         {
@@ -3085,6 +3353,82 @@
       },
       "required": [
         "message"
+      ],
+      "type": "object"
+    },
+    "ModCommand": {
+      "properties": {
+        "argumentHint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "immediate": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "pluginId": {
+          "type": "string"
+        },
+        "qualifiedName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "immediate",
+        "name",
+        "pluginId",
+        "qualifiedName"
+      ],
+      "type": "object"
+    },
+    "ModPane": {
+      "properties": {
+        "closeOnEscape": {
+          "type": "boolean"
+        },
+        "columns": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "focus": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "isPlaced": {
+          "type": "boolean"
+        },
+        "pluginId": {
+          "type": "string"
+        },
+        "rows": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "closeOnEscape",
+        "columns",
+        "focus",
+        "id",
+        "isPlaced",
+        "pluginId",
+        "rows",
+        "title"
       ],
       "type": "object"
     },
@@ -7116,6 +7460,26 @@
         "params"
       ],
       "title": "ErrorNotification",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "method": {
+          "enum": [
+            "claudeMod/changed"
+          ],
+          "title": "ClaudeMod/changedNotificationMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/ClaudeModChangedNotification"
+        }
+      },
+      "required": [
+        "method",
+        "params"
+      ],
+      "title": "ClaudeMod/changedNotification",
       "type": "object"
     },
     {

@@ -608,11 +608,19 @@ impl ToolRegistry {
         Some(tool.exposure != ToolExposure::Hidden && tool.runtime.supports_parallel_tool_calls())
     }
 
+    pub(crate) async fn dispatch_any_with_state(
+        &self,
+        invocation: ToolInvocation,
+        call_state: Option<Arc<ToolCallState>>,
+    ) -> Result<AnyToolResult, FunctionCallError> {
+        crate::session_hooks::dispatch(self, invocation, call_state).await
+    }
+
     #[expect(
         clippy::await_holding_invalid_type,
         reason = "tool dispatch must keep active-turn accounting atomic"
     )]
-    pub(crate) async fn dispatch_any_with_state(
+    pub(crate) async fn dispatch_native_with_state(
         &self,
         mut invocation: ToolInvocation,
         call_state: Option<Arc<ToolCallState>>,

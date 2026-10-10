@@ -54,7 +54,8 @@ async fn real_imds_credentials_stop_after_policy_revocation() -> Result<(), Box<
                 r#"{"Code":"Success","AccessKeyId":"test-key","SecretAccessKey":"test-secret","Token":"test-session","Expiration":"2099-01-01T00:00:00Z"}"#
             };
             let response = format!(
-                "HTTP/1.1 200 OK\r\nx-aws-ec2-metadata-token-ttl-seconds: 21600\r\nConnection: close\r\n\r\n{body}"
+                "HTTP/1.1 200 OK\r\nx-aws-ec2-metadata-token-ttl-seconds: 21600\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                body.len()
             );
             socket.write_all(response.as_bytes()).await?;
         }

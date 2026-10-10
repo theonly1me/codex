@@ -506,6 +506,164 @@ class CapabilityRootLocation(RootModel[EnvironmentCapabilityRootLocation]):
     ]
 
 
+class ClaudeModCommandParams(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    arguments: str | None = ""
+    name: str
+    plugin_id: Annotated[str, Field(alias="pluginId")]
+    thread_id: Annotated[str, Field(alias="threadId")]
+
+
+class ClaudeModCommandResponse(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    text: str
+
+
+class ClaudeModControlResponse(BaseModel):
+    pass
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+
+
+class ClaudeModEvent1(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["copy"]
+    text: str
+
+
+class ThemePickerClaudeModEvent(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["themePicker"]
+
+
+class ClaudeModEvent4(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: str
+    kind: Literal["close"]
+    plugin_id: str
+
+
+class ClaudeModEvent5(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["invalidate"]
+    plugin_id: str
+
+
+class ClaudeModEvent6(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    cells: str
+    key: str
+    kind: Literal["raster"]
+    plugin_id: str
+    request_id: str
+
+
+class ClaudeModEvent7(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["status"]
+    plugin_id: str
+    text: str | None = None
+
+
+class ClaudeModEvent8(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["toast"]
+    plugin_id: str
+    text: str
+
+
+class ClaudeModEvent9(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["promptFill"]
+    plugin_id: str
+    text: str
+
+
+class ClaudeModEvent10(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    key: str
+    kind: Literal["config"]
+    value: Any
+
+
+class ClaudeModEvent11(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["error"]
+    message: str
+    plugin_id: str
+
+
+class ClaudeModInteraction1(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    callback_id: str
+    kind: Literal["callback"]
+    value: Any
+
+
+class ClaudeModInteraction2(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: str
+    kind: Literal["close"]
+    plugin_id: str
+
+
+class ClaudeModInteraction3(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    element: str | None = None
+    id: str
+    is_focused: bool
+    kind: Literal["focus"]
+    plugin_id: str
+
+
+class ClaudeModInteraction(
+    RootModel[ClaudeModInteraction1 | ClaudeModInteraction2 | ClaudeModInteraction3]
+):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    root: ClaudeModInteraction1 | ClaudeModInteraction2 | ClaudeModInteraction3
+
+
+class ClaudeModListParams(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    interactive: bool | None = False
+    thread_id: Annotated[str, Field(alias="threadId")]
+
+
 class CliAuthCredentialsStoreMode(Enum):
     file = "file"
     keyring = "keyring"
@@ -2759,6 +2917,45 @@ class MisalignmentSteer(BaseModel):
         populate_by_name=True,
     )
     message: str
+
+
+class ModCommand(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    argument_hint: Annotated[str | None, Field(alias="argumentHint")] = None
+    description: str
+    immediate: bool
+    name: str
+    plugin_id: Annotated[str, Field(alias="pluginId")]
+    qualified_name: Annotated[str, Field(alias="qualifiedName")]
+
+
+class ModPane(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    close_on_escape: Annotated[bool, Field(alias="closeOnEscape")]
+    columns: Annotated[int, Field(ge=0)]
+    focus: bool
+    id: str
+    is_placed: Annotated[bool, Field(alias="isPlaced")]
+    plugin_id: Annotated[str, Field(alias="pluginId")]
+    rows: Annotated[int, Field(ge=0)]
+    title: str
+
+
+class ModRenderRequest(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    columns: Annotated[int, Field(ge=0)]
+    component: str
+    is_focused: Annotated[bool, Field(alias="isFocused")]
+    is_working: Annotated[bool, Field(alias="isWorking")]
+    props: dict[str, Any] | None = {}
+    request_id: Annotated[str, Field(alias="requestId")]
+    rows: Annotated[int, Field(ge=0)]
 
 
 class ModeKind(Enum):
@@ -6959,6 +7156,81 @@ class CancelLoginAccountResponse(BaseModel):
     status: CancelLoginAccountStatus
 
 
+class ClaudeModControlParams(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    interaction: ClaudeModInteraction
+    thread_id: Annotated[str, Field(alias="threadId")]
+
+
+class ClaudeModEvent2(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    command: ModCommand
+    kind: Literal["command"]
+
+
+class ClaudeModEvent3(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    kind: Literal["open"]
+    pane: ModPane
+
+
+class ClaudeModEvent(
+    RootModel[
+        ClaudeModEvent1
+        | ThemePickerClaudeModEvent
+        | ClaudeModEvent2
+        | ClaudeModEvent3
+        | ClaudeModEvent4
+        | ClaudeModEvent5
+        | ClaudeModEvent6
+        | ClaudeModEvent7
+        | ClaudeModEvent8
+        | ClaudeModEvent9
+        | ClaudeModEvent10
+        | ClaudeModEvent11
+    ]
+):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    root: (
+        ClaudeModEvent1
+        | ThemePickerClaudeModEvent
+        | ClaudeModEvent2
+        | ClaudeModEvent3
+        | ClaudeModEvent4
+        | ClaudeModEvent5
+        | ClaudeModEvent6
+        | ClaudeModEvent7
+        | ClaudeModEvent8
+        | ClaudeModEvent9
+        | ClaudeModEvent10
+        | ClaudeModEvent11
+    )
+
+
+class ClaudeModListResponse(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    commands: list[ModCommand]
+    panes: list[ModPane]
+
+
+class ClaudeModRenderParams(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    render: ModRenderRequest
+    thread_id: Annotated[str, Field(alias="threadId")]
+
+
 class InitializeRequest(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
@@ -7277,6 +7549,42 @@ class MarketplaceUpgradeRequest(BaseModel):
         Literal["marketplace/upgrade"], Field(title="Marketplace/upgradeRequestMethod")
     ]
     params: MarketplaceUpgradeParams
+
+
+class ClaudeModListRequest(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: RequestId
+    method: Annotated[Literal["claudeMod/list"], Field(title="ClaudeMod/listRequestMethod")]
+    params: ClaudeModListParams
+
+
+class ClaudeModCommandRequest(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: RequestId
+    method: Annotated[Literal["claudeMod/command"], Field(title="ClaudeMod/commandRequestMethod")]
+    params: ClaudeModCommandParams
+
+
+class ClaudeModRenderRequest(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: RequestId
+    method: Annotated[Literal["claudeMod/render"], Field(title="ClaudeMod/renderRequestMethod")]
+    params: ClaudeModRenderParams
+
+
+class ClaudeModControlRequest(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    id: RequestId
+    method: Annotated[Literal["claudeMod/control"], Field(title="ClaudeMod/controlRequestMethod")]
+    params: ClaudeModControlParams
 
 
 class PluginListRequest(BaseModel):
@@ -10702,6 +11010,14 @@ class AppsListResponse(BaseModel):
     ] = None
 
 
+class ClaudeModChangedNotification(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    event: ClaudeModEvent
+    thread_id: Annotated[str, Field(alias="threadId")]
+
+
 class ThreadStartRequest(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
@@ -11346,6 +11662,23 @@ class ErrorServerNotification(BaseModel):
     ] = None
     method: Annotated[Literal["error"], Field(title="ErrorNotificationMethod")]
     params: ErrorNotification
+
+
+class ClaudeModChangedServerNotification(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    emitted_at_ms: Annotated[
+        int | None,
+        Field(
+            alias="emittedAtMs",
+            description="Unix timestamp (in milliseconds) when app-server emitted this notification.",
+        ),
+    ] = None
+    method: Annotated[
+        Literal["claudeMod/changed"], Field(title="ClaudeMod/changedNotificationMethod")
+    ]
+    params: ClaudeModChangedNotification
 
 
 class ThreadReadStateChangedServerNotification(BaseModel):
@@ -12811,6 +13144,10 @@ class ClientRequest(
         | MarketplaceAddRequest
         | MarketplaceRemoveRequest
         | MarketplaceUpgradeRequest
+        | ClaudeModListRequest
+        | ClaudeModCommandRequest
+        | ClaudeModRenderRequest
+        | ClaudeModControlRequest
         | PluginListRequest
         | PluginInstalledRequest
         | PluginReconcileRequest
@@ -12922,6 +13259,10 @@ class ClientRequest(
         | MarketplaceAddRequest
         | MarketplaceRemoveRequest
         | MarketplaceUpgradeRequest
+        | ClaudeModListRequest
+        | ClaudeModCommandRequest
+        | ClaudeModRenderRequest
+        | ClaudeModControlRequest
         | PluginListRequest
         | PluginInstalledRequest
         | PluginReconcileRequest
@@ -13167,6 +13508,7 @@ class ItemAutoApprovalReviewCompletedServerNotification(BaseModel):
 class ServerNotification(
     RootModel[
         ErrorServerNotification
+        | ClaudeModChangedServerNotification
         | ThreadStartedServerNotification
         | ThreadStatusChangedServerNotification
         | ThreadReadStateChangedServerNotification
@@ -13258,6 +13600,7 @@ class ServerNotification(
     )
     root: Annotated[
         ErrorServerNotification
+        | ClaudeModChangedServerNotification
         | ThreadStartedServerNotification
         | ThreadStatusChangedServerNotification
         | ThreadReadStateChangedServerNotification
@@ -13347,3 +13690,31 @@ class ServerNotification(
             title="ServerNotification",
         ),
     ]
+
+
+class ClaudeModRenderResponse(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    tree: ModNode
+
+
+class ModElement(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    children: list[ModNode] | None = []
+    element: str
+    plugin: str | None = None
+    props: dict[str, Any] | None = {}
+
+
+class ModNode(RootModel['str | float | ModElement | list[ModNode] | None']):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+    root: str | float | ModElement | list[ModNode] | None
+
+
+ClaudeModRenderResponse.model_rebuild()
+ModElement.model_rebuild()

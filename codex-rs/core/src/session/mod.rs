@@ -242,6 +242,7 @@ mod config_refresh;
 pub(crate) mod context_window;
 mod daemon_recovery;
 mod environment;
+mod extension_hooks;
 mod extension_interruption;
 pub(crate) mod extension_metrics;
 mod guardian_checkpoint;
@@ -2397,6 +2398,9 @@ impl Session {
 
     /// Persist the event to rollout and send it to clients.
     pub(crate) async fn send_event(&self, turn_context: &TurnContext, msg: EventMsg) {
+        if !crate::session_hooks::for_session(self).accepts_event(self, &msg) {
+            return;
+        }
         let legacy_source = msg.clone();
         if let EventMsg::Error(error) = &legacy_source
             && error
@@ -3197,6 +3201,7 @@ impl Session {
         call_id: String,
         args: RequestUserInputArgs,
     ) -> Option<AcceptedUserInputResponse> {
+        let _serialization = crate::session_hooks::acquire_user_input(self).await?;
         let _elicitation = self.services.elicitations.register();
         let sub_id = turn_context.sub_id.clone();
         let (tx_response, rx_response) = oneshot::channel();
@@ -3208,7 +3213,7 @@ impl Session {
                     let mut ts = at.turn_state.lock().await;
                     ts.insert_pending_user_input(sub_id, tx_response)
                 }
-                None => None,
+                None => return None,
             }
         };
         if prev_entry.is_some() {
@@ -4986,6 +4991,9 @@ impl Session {
             let state = self.state.lock().await;
             state.token_info_and_rate_limits()
         };
+        crate::session_hooks::for_session(self)
+            .measure(self, turn_context)
+            .await;
         let event = EventMsg::TokenCount(TokenCountEvent { info, rate_limits });
         self.send_event(turn_context, event).await;
     }

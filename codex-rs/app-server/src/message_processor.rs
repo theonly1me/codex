@@ -367,11 +367,10 @@ impl MessageProcessor {
                     outgoing.clone(),
                     thread_state_manager.clone(),
                 )),
-                Some({
-                    let time_provider =
-                        app_server_time_provider(outgoing.clone(), thread_state_manager.clone());
-                    time_provider
-                }),
+                Some(app_server_time_provider(
+                    outgoing.clone(),
+                    thread_state_manager.clone(),
+                )),
             );
             match code_mode_session_provider {
                 Some(provider) => manager.with_code_mode_session_provider(provider),
@@ -1560,6 +1559,18 @@ impl MessageProcessor {
             }
             ClientRequest::MarketplaceUpgrade { params, .. } => {
                 self.marketplace_processor.marketplace_upgrade(params).await
+            }
+            ClientRequest::ClaudeModList { params, .. } => {
+                self.thread_processor.claude_mod_list(params).await
+            }
+            ClientRequest::ClaudeModCommand { params, .. } => {
+                self.thread_processor.claude_mod_command(params).await
+            }
+            ClientRequest::ClaudeModRender { params, .. } => {
+                self.thread_processor.claude_mod_render(params).await
+            }
+            ClientRequest::ClaudeModControl { params, .. } => {
+                self.thread_processor.claude_mod_control(params).await
             }
             ClientRequest::PluginList { params, .. } => {
                 self.plugin_processor.plugin_list(params).await

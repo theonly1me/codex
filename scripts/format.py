@@ -10,6 +10,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from formatters.rust import commands as rust_commands
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,11 +45,11 @@ def just_formatter_group(*, check: bool) -> FormatterGroup:
 
 
 def rust_formatter_group(*, check: bool) -> FormatterGroup:
-    args = ["cargo", "fmt", "--", "--config", "imports_granularity=Item"]
-    if check:
-        args.append("--check")
-    command = Command(tuple(args), REPO_ROOT / "codex-rs")
-    return FormatterGroup("Rust", (command,))
+    commands = tuple(
+        Command(arguments, REPO_ROOT / "codex-rs")
+        for arguments in rust_commands(REPO_ROOT, check=check)
+    )
+    return FormatterGroup("Rust", commands)
 
 
 def buildifier_formatter_group(*, check: bool) -> FormatterGroup:

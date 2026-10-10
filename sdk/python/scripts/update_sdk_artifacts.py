@@ -589,6 +589,9 @@ def generate_v2_all(schema_dir: Path) -> None:
             ],
             cwd=sdk_root(),
         )
+    from recursive_models import quote_recursive_root_models
+
+    out_path.write_text(quote_recursive_root_models(out_path.read_text()))
     _preserve_inline_image_class_names(out_path)
     _require_nullable_field(out_path, "ChatgptAccount", r"email: str \| None")
     _require_nullable_field(

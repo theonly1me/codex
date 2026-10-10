@@ -1124,6 +1124,102 @@
             },
             "method": {
               "enum": [
+                "claudeMod/list"
+              ],
+              "title": "ClaudeMod/listRequestMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/v2/ClaudeModListParams"
+            }
+          },
+          "required": [
+            "id",
+            "method",
+            "params"
+          ],
+          "title": "ClaudeMod/listRequest",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/v2/RequestId"
+            },
+            "method": {
+              "enum": [
+                "claudeMod/command"
+              ],
+              "title": "ClaudeMod/commandRequestMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/v2/ClaudeModCommandParams"
+            }
+          },
+          "required": [
+            "id",
+            "method",
+            "params"
+          ],
+          "title": "ClaudeMod/commandRequest",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/v2/RequestId"
+            },
+            "method": {
+              "enum": [
+                "claudeMod/render"
+              ],
+              "title": "ClaudeMod/renderRequestMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/v2/ClaudeModRenderParams"
+            }
+          },
+          "required": [
+            "id",
+            "method",
+            "params"
+          ],
+          "title": "ClaudeMod/renderRequest",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/v2/RequestId"
+            },
+            "method": {
+              "enum": [
+                "claudeMod/control"
+              ],
+              "title": "ClaudeMod/controlRequestMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/v2/ClaudeModControlParams"
+            }
+          },
+          "required": [
+            "id",
+            "method",
+            "params"
+          ],
+          "title": "ClaudeMod/controlRequest",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "$ref": "#/definitions/v2/RequestId"
+            },
+            "method": {
+              "enum": [
                 "plugin/list"
               ],
               "title": "Plugin/listRequestMethod",
@@ -4641,6 +4737,26 @@
             "params"
           ],
           "title": "ErrorNotification",
+          "type": "object"
+        },
+        {
+          "properties": {
+            "method": {
+              "enum": [
+                "claudeMod/changed"
+              ],
+              "title": "ClaudeMod/changedNotificationMethod",
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/definitions/v2/ClaudeModChangedNotification"
+            }
+          },
+          "required": [
+            "method",
+            "params"
+          ],
+          "title": "ClaudeMod/changedNotification",
           "type": "object"
         },
         {
@@ -8482,6 +8598,484 @@
             "type": "object"
           }
         ]
+      },
+      "ClaudeModChangedNotification": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "event": {
+            "$ref": "#/definitions/v2/ClaudeModEvent"
+          },
+          "threadId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "event",
+          "threadId"
+        ],
+        "title": "ClaudeModChangedNotification",
+        "type": "object"
+      },
+      "ClaudeModCommandParams": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "arguments": {
+            "default": "",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pluginId": {
+            "type": "string"
+          },
+          "threadId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "pluginId",
+          "threadId"
+        ],
+        "title": "ClaudeModCommandParams",
+        "type": "object"
+      },
+      "ClaudeModCommandResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ClaudeModCommandResponse",
+        "type": "object"
+      },
+      "ClaudeModControlParams": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "interaction": {
+            "$ref": "#/definitions/v2/ClaudeModInteraction"
+          },
+          "threadId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "interaction",
+          "threadId"
+        ],
+        "title": "ClaudeModControlParams",
+        "type": "object"
+      },
+      "ClaudeModControlResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "ClaudeModControlResponse",
+        "type": "object"
+      },
+      "ClaudeModEvent": {
+        "oneOf": [
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "copy"
+                ],
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "text"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "themePicker"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "title": "ThemePickerClaudeModEvent",
+            "type": "object"
+          },
+          {
+            "properties": {
+              "command": {
+                "$ref": "#/definitions/v2/ModCommand"
+              },
+              "kind": {
+                "enum": [
+                  "command"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "command",
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "open"
+                ],
+                "type": "string"
+              },
+              "pane": {
+                "$ref": "#/definitions/v2/ModPane"
+              }
+            },
+            "required": [
+              "kind",
+              "pane"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "close"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "plugin_id"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "invalidate"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "plugin_id"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "cells": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "raster"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              },
+              "request_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "cells",
+              "key",
+              "kind",
+              "plugin_id",
+              "request_id"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "status"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "plugin_id"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "toast"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "plugin_id",
+              "text"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "promptFill"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "plugin_id",
+              "text"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "config"
+                ],
+                "type": "string"
+              },
+              "value": true
+            },
+            "required": [
+              "key",
+              "kind",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "error"
+                ],
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "message",
+              "plugin_id"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ClaudeModInteraction": {
+        "oneOf": [
+          {
+            "properties": {
+              "callback_id": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "callback"
+                ],
+                "type": "string"
+              },
+              "value": true
+            },
+            "required": [
+              "callback_id",
+              "kind",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "close"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "plugin_id"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "element": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "is_focused": {
+                "type": "boolean"
+              },
+              "kind": {
+                "enum": [
+                  "focus"
+                ],
+                "type": "string"
+              },
+              "plugin_id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "is_focused",
+              "kind",
+              "plugin_id"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ClaudeModListParams": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "interactive": {
+            "default": false,
+            "type": "boolean"
+          },
+          "threadId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "threadId"
+        ],
+        "title": "ClaudeModListParams",
+        "type": "object"
+      },
+      "ClaudeModListResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "commands": {
+            "items": {
+              "$ref": "#/definitions/v2/ModCommand"
+            },
+            "type": "array"
+          },
+          "panes": {
+            "items": {
+              "$ref": "#/definitions/v2/ModPane"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "commands",
+          "panes"
+        ],
+        "title": "ClaudeModListResponse",
+        "type": "object"
+      },
+      "ClaudeModRenderParams": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "render": {
+            "$ref": "#/definitions/v2/ModRenderRequest"
+          },
+          "threadId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "render",
+          "threadId"
+        ],
+        "title": "ClaudeModRenderParams",
+        "type": "object"
+      },
+      "ClaudeModRenderResponse": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "tree": {
+            "$ref": "#/definitions/v2/ModNode"
+          }
+        },
+        "required": [
+          "tree"
+        ],
+        "title": "ClaudeModRenderResponse",
+        "type": "object"
       },
       "CliAuthCredentialsStoreMode": {
         "enum": [
@@ -15519,6 +16113,175 @@
         },
         "required": [
           "message"
+        ],
+        "type": "object"
+      },
+      "ModCommand": {
+        "properties": {
+          "argumentHint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "immediate": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pluginId": {
+            "type": "string"
+          },
+          "qualifiedName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "immediate",
+          "name",
+          "pluginId",
+          "qualifiedName"
+        ],
+        "type": "object"
+      },
+      "ModElement": {
+        "properties": {
+          "children": {
+            "default": [],
+            "items": {
+              "$ref": "#/definitions/v2/ModNode"
+            },
+            "type": "array"
+          },
+          "element": {
+            "type": "string"
+          },
+          "plugin": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "props": {
+            "additionalProperties": true,
+            "default": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "element"
+        ],
+        "type": "object"
+      },
+      "ModNode": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "format": "double",
+            "type": "number"
+          },
+          {
+            "$ref": "#/definitions/v2/ModElement"
+          },
+          {
+            "items": {
+              "$ref": "#/definitions/v2/ModNode"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "ModPane": {
+        "properties": {
+          "closeOnEscape": {
+            "type": "boolean"
+          },
+          "columns": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "focus": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "isPlaced": {
+            "type": "boolean"
+          },
+          "pluginId": {
+            "type": "string"
+          },
+          "rows": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "closeOnEscape",
+          "columns",
+          "focus",
+          "id",
+          "isPlaced",
+          "pluginId",
+          "rows",
+          "title"
+        ],
+        "type": "object"
+      },
+      "ModRenderRequest": {
+        "properties": {
+          "columns": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "component": {
+            "type": "string"
+          },
+          "isFocused": {
+            "type": "boolean"
+          },
+          "isWorking": {
+            "type": "boolean"
+          },
+          "props": {
+            "additionalProperties": true,
+            "default": {},
+            "type": "object"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "rows": {
+            "format": "uint16",
+            "minimum": 0.0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "columns",
+          "component",
+          "isFocused",
+          "isWorking",
+          "requestId",
+          "rows"
         ],
         "type": "object"
       },

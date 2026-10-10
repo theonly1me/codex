@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ModRenderRequest": {
+      "properties": {
+        "columns": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "component": {
+          "type": "string"
+        },
+        "isFocused": {
+          "type": "boolean"
+        },
+        "isWorking": {
+          "type": "boolean"
+        },
+        "props": {
+          "additionalProperties": true,
+          "default": {},
+          "type": "object"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "rows": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "columns",
+        "component",
+        "isFocused",
+        "isWorking",
+        "requestId",
+        "rows"
+      ],
+      "type": "object"
+    }
+  },
+  "properties": {
+    "render": {
+      "$ref": "#/definitions/ModRenderRequest"
+    },
+    "threadId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "render",
+    "threadId"
+  ],
+  "title": "ClaudeModRenderParams",
+  "type": "object"
+}

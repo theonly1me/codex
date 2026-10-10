@@ -1,10 +1,15 @@
 mod file_update;
+pub use file_update::ProposedFileUpdate;
+pub use file_update::preview_file_update;
 mod invocation;
 mod parser;
 mod seek_sequence;
 mod standalone_executable;
 mod streaming_parser;
+mod structured_diff;
 mod text_file;
+pub use structured_diff::FileDiffHunk;
+pub use structured_diff::structured_file_diff;
 
 use std::collections::HashMap;
 use std::io;
@@ -1406,3 +1411,6 @@ mod tests {
         assert!(!delta.is_exact());
     }
 }
+
+#[cfg(test)]
+mod structured_diff_tests;

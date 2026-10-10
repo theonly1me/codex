@@ -130,6 +130,17 @@ impl App {
         app_server_client: &AppServerSession,
         notification: ServerNotification,
     ) {
+        if let ServerNotification::ClaudeModChanged(change) = &notification {
+            if self
+                .chat_widget
+                .thread_id()
+                .is_some_and(|id| id.to_string() == change.thread_id)
+            {
+                self.chat_widget.claude_mod_event(change.event.clone());
+            }
+            return;
+        }
+
         // A picker can leave an old runtime's close notification queued while the same thread
         // is resumed. Thread IDs survive reloads, so confirm that the displayed thread is still
         // unloaded before routing a close that would exit the TUI or switch away from it.

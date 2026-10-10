@@ -294,6 +294,7 @@ pub struct ModelClient {
 pub struct ModelClientSession {
     client: ModelClient,
     websocket_session: WebsocketSession,
+    max_output_tokens: Option<u64>,
     /// Turn state for sticky routing.
     ///
     /// This is an `OnceLock` that stores the turn state value received from the server
@@ -386,6 +387,7 @@ fn responses_request_properties_mismatch(
 ) -> Option<&'static str> {
     let ResponsesApiRequest {
         model: previous_model,
+        max_output_tokens: previous_max_output_tokens,
         input: _,
         tools: previous_tools,
         tool_choice: previous_tool_choice,
@@ -403,6 +405,7 @@ fn responses_request_properties_mismatch(
     } = previous;
     let ResponsesApiRequest {
         model: current_model,
+        max_output_tokens: current_max_output_tokens,
         input: _,
         tools: current_tools,
         tool_choice: current_tool_choice,
@@ -423,6 +426,8 @@ fn responses_request_properties_mismatch(
     // referenced by `previous_response_id`.
     let reason = if previous_model != current_model {
         "model_changed"
+    } else if previous_max_output_tokens != current_max_output_tokens {
+        "max_output_tokens_changed"
     } else if previous_tools != current_tools {
         "tools_changed"
     } else if previous_tool_choice != current_tool_choice {
@@ -674,6 +679,7 @@ impl ModelClient {
         ModelClientSession {
             client: self.clone(),
             websocket_session,
+            max_output_tokens: None,
             turn_state: Arc::new(OnceLock::new()),
         }
     }
@@ -1051,6 +1057,7 @@ impl ModelClient {
         }
         let client_metadata = responses_metadata.client_metadata(include_internal);
         let request = ResponsesApiRequest {
+            max_output_tokens: None,
             model: model_info.slug.clone(),
             input,
             tools,
@@ -1404,6 +1411,10 @@ impl Drop for ModelClientSession {
 }
 
 impl ModelClientSession {
+    pub(crate) fn set_max_output_tokens(&mut self, maximum: u64) {
+        self.max_output_tokens = Some(maximum);
+    }
+
     pub(crate) fn inference_tools_changed(&self, tools: &Arc<[ToolSpec]>) -> bool {
         let previous = self
             .client
@@ -1781,6 +1792,7 @@ impl ModelClientSession {
                 responses_metadata,
                 include_internal,
             )?;
+            request.max_output_tokens = self.max_output_tokens;
             self.client.set_guardian_metadata(
                 &mut request.client_metadata,
                 responses_metadata.parent_response_id.as_deref(),
@@ -1957,6 +1969,7 @@ impl ModelClientSession {
                 responses_metadata,
                 include_internal,
             )?;
+            request.max_output_tokens = self.max_output_tokens;
             if is_guardian_reviewer(&responses_headers) {
                 request.service_tier = None;
             }
