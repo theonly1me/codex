@@ -41,6 +41,8 @@ base_url = "{model.url}"
 wire_api = "responses"
 requires_openai_auth = false
 supports_websockets = false
+[projects."{project}"]
+trust_level = "trusted"
 '''
     )
     execute(["git", "init", "--quiet"], environment, project)

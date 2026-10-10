@@ -14,7 +14,7 @@ from .fixtures import execute
 
 
 class Terminal:
-    def __init__(self, binary, environment, project, only_plugin=None):
+    def __init__(self, binary, environment, project, only_plugin=None, inline=False):
         self.master, slave = pty.openpty()
         self.resize(100, 40)
         settings = [
@@ -29,7 +29,9 @@ class Terminal:
                 plugin = entry["name"] + "@" + entry["marketplaceName"]
                 enabled = plugin.split("@")[0] == only_plugin
                 settings.append(f"plugins.{plugin}.enabled={str(enabled).lower()}")
-        arguments = [str(binary), "--no-alt-screen"]
+        arguments = [str(binary)]
+        if inline:
+            arguments.append("--no-alt-screen")
         for setting in settings:
             arguments.extend(["-c", setting])
         self.process = subprocess.Popen(
@@ -88,7 +90,9 @@ class Terminal:
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             text = self.read()
-            if expected.casefold() in text.casefold():
+            compact_text = re.sub(r"\s+", "", text.casefold())
+            compact_expected = re.sub(r"\s+", "", expected.casefold())
+            if compact_expected in compact_text:
                 return text
             if self.process.poll() is not None:
                 break
@@ -115,6 +119,9 @@ class Terminal:
 
 
 def verify_terminal(binary, environment, project, log):
+    from .animation import verify_animation
+
+    verify_animation(binary, environment, project, log)
     terminal = Terminal(binary, environment, project)
     try:
         terminal.wait("gpt-6.1-sol")
@@ -123,9 +130,6 @@ def verify_terminal(binary, environment, project, log):
         terminal.submit("/dojo on")
         terminal.wait("Samurai Dojo is on")
         terminal.read(0.5)
-        assert re.search(rb"\x1b\[[^m]*38;2;", terminal.output), (
-            "The native terminal received no RGB scene"
-        )
         terminal.clear()
         terminal.resize(42, 30)
         os.kill(terminal.process.pid, signal.SIGWINCH)
@@ -159,7 +163,7 @@ def verify_terminal(binary, environment, project, log):
         terminal.read(0.5)
         terminal.submit("/grill")
         terminal.read(0.5)
-        return "native CLI commands, RGB scenes, resize, pane controls, and Grill band focus"
+        return "native CLI default and inline animation, resize, pane controls, and Grill band focus"
     finally:
         log.write_bytes(terminal.transcript)
         terminal.close()

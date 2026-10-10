@@ -1,3 +1,4 @@
+mod composition;
 mod controls;
 mod focus;
 pub(crate) mod history;

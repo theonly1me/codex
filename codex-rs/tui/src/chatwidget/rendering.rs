@@ -192,8 +192,6 @@ impl ChatWidget {
                 })),
             );
         }
-        let mod_flex = 0;
-        flex.push(mod_flex, RenderableItem::Borrowed(&self.mod_ui));
         flex.push(
             /*flex*/ 0,
             self.bottom_pane_renderable(crate::bottom_pane::ComposerRenderOptions::default())
@@ -238,7 +236,16 @@ impl ChatWidget {
             options.textarea_right_reserve = right_reserve;
             options.separate_status_line = options.command_popup_placement
                 != crate::bottom_pane::CommandPopupPlacement::AboveComposer;
-            self.bottom_pane.as_renderable_with_options(options)
+            let composer = self.bottom_pane.as_renderable_with_options(options);
+            if self
+                .bottom_pane
+                .selected_index_for_active_view(crate::app::AGENTS_OVERVIEW_VIEW_ID)
+                .is_some()
+            {
+                composer
+            } else {
+                self.mod_ui.above_composer(composer)
+            }
         }
     }
 

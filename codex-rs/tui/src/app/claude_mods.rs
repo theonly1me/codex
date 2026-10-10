@@ -155,3 +155,7 @@ impl App {
 fn request_id() -> RequestId {
     RequestId::String(format!("mod-{}", uuid::Uuid::new_v4()))
 }
+
+#[cfg(test)]
+#[path = "claude_mod_render_tests.rs"]
+mod render_tests;
