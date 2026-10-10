@@ -90,6 +90,8 @@ The repository variable `CODEX_CI_RUNNERS` supplies runner labels by platform or
 The checked-in policy lives in `.github/fork/ci-runners.json`.
 Unset entries retain the upstream runner selection.
 The build timeout entry permits cold builds on standard hosted machines.
+The Linux space entry removes unused preinstalled Android, .NET, and Haskell SDKs on disposable hosted runners.
+The cleanup rejects local machines and self-hosted runners.
 Unset timeouts retain the upstream limits.
 Each workflow keeps its existing checks, targets, and failure rules.
 
