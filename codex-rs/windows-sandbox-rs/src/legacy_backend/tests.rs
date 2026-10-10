@@ -12,6 +12,7 @@ use fixture::Fixture;
 #[test]
 fn capture_rejects_legacy_execution_before_deletion() {
     let fixture = Fixture::new();
+    let cancellation = None;
     fixture.assert_rejected(crate::run_windows_sandbox_capture(
         &PermissionProfile::workspace_write(),
         &fixture.roots(),
@@ -20,7 +21,7 @@ fn capture_rejects_legacy_execution_before_deletion() {
         &fixture.workspace,
         fixture.environment(),
         Some(5_000),
-        None,
+        cancellation,
     ));
 }
 
@@ -28,6 +29,7 @@ fn capture_rejects_legacy_execution_before_deletion() {
 async fn direct_sessions_reject_legacy_execution_with_or_without_a_tty() {
     for tty in [false, true] {
         let fixture = Fixture::new();
+        let stdin_open = true;
         fixture.assert_rejected(
             spawn_windows_sandbox_session_legacy(
                 &PermissionProfile::workspace_write(),
@@ -40,7 +42,7 @@ async fn direct_sessions_reject_legacy_execution_with_or_without_a_tty() {
                 &[],
                 &[],
                 tty,
-                true,
+                stdin_open,
             )
             .await,
         );
@@ -84,6 +86,11 @@ async fn configured_sessions_reject_legacy_execution_for_both_permission_modes()
 fn wrapper_rejects_legacy_execution_before_preparing_a_desktop() {
     let fixture = Fixture::new();
     let mut environment = fixture.environment();
+    let proxy_enforced = false;
+    let network_proxy_restricting_sid = None;
+    let read_roots_override = None;
+    let read_roots_include_platform_defaults = false;
+    let write_roots_override = None;
     fixture.assert_rejected(
         crate::create_windows_sandbox_command_args_for_permission_profile(
             fixture.command(),
@@ -92,12 +99,12 @@ fn wrapper_rejects_legacy_execution_before_preparing_a_desktop() {
             &mut environment,
             &PermissionProfile::workspace_write(),
             WindowsSandboxLevel::RestrictedToken,
-            false,
-            None,
+            proxy_enforced,
+            network_proxy_restricting_sid,
             crate::WindowsSandboxProxySettingsMode::Preserve,
-            None,
-            false,
-            None,
+            read_roots_override,
+            read_roots_include_platform_defaults,
+            write_roots_override,
             &[],
             &[],
             &fixture.home,

@@ -16,7 +16,7 @@ The current account-isolated and MXC backends remain available.
    sandbox = "elevated"
    ```
 
-2. Start Codex and run `/sandbox` to configure the Windows sandbox.
+2. Start Codex and run `/setup-default-sandbox` to configure the Windows sandbox.
 3. Complete the setup prompt if Windows requests administrator approval.
 
 The account-isolated backend executes commands under a managed account.
