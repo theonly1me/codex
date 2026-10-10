@@ -1,0 +1,22 @@
+name: legacy-delete-diagnostic
+
+on:
+  push:
+    branches: [codex/diagnose-legacy-deletes]
+
+jobs:
+  inspect-native-access:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - name: Compile and run the native access probe
+        shell: pwsh
+        run: |
+          $installation = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (!$installation) { throw "MSVC installation is unavailable" }
+          $developer = Join-Path $installation 'Common7\Tools\VsDevCmd.bat'
+          & cmd.exe /d /s /c "`"`"$developer`" -no_logo -arch=x64 -host_arch=x64 && cl.exe /nologo /std:c11 /W4 /WX .github\fork\legacy_delete_probe.c /Fe:legacy_delete_probe.exe advapi32.lib && legacy_delete_probe.exe`""
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
