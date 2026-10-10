@@ -18,6 +18,9 @@ def verify_animation(binary, environment, project, log):
         try:
             terminal.wait("gpt-6.1-sol")
             terminal.read(1)
+            terminal.submit("/dojo off")
+            terminal.wait("Samurai Dojo is off")
+            terminal.read(0.5)
             terminal.clear()
             terminal.submit("/dojo on")
             terminal.wait("Samurai Dojo is on")

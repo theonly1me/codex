@@ -1,7 +1,9 @@
+from contextlib import ExitStack
+
 import json
 import os
-import signal
 import queue
+import signal
 import subprocess
 import threading
 import time
@@ -9,7 +11,8 @@ import time
 
 class AppServer:
     def __init__(self, binary, environment, project, log):
-        self.log = open(log, "w", encoding="utf-8")
+        self.resources = ExitStack()
+        self.log = self.resources.enter_context(open(log, "w", encoding="utf-8"))
         self.process = subprocess.Popen(
             [str(binary), "app-server"],
             cwd=project,
@@ -111,4 +114,4 @@ class AppServer:
                 os.killpg(self.process.pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
-        self.log.close()
+        self.resources.close()

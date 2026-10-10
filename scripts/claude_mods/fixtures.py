@@ -8,6 +8,7 @@ PINNED_REF = "6d69bf8871bb088c3bdf5b5526b03dce633cdb88"
 def execute(arguments, environment, project):
     result = subprocess.run(
         arguments,
+        check=False,
         env=environment,
         cwd=project,
         text=True,

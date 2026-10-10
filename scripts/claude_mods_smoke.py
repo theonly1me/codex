@@ -5,16 +5,14 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from claude_mods.model import ModelServer
-from claude_mods.individual import verify_individual
+from claude_mods.behavior import verify_persistence, verify_work_reports
 from claude_mods.controls import verify_controls
-from claude_mods.scenarios import check_catalog, check_native_turn
-from claude_mods.guards import check_scope_guard
-from claude_mods.behavior import verify_work_reports, verify_persistence
-from claude_mods.transport import AppServer
-
-
 from claude_mods.fixtures import PINNED_REF, configure, execute
+from claude_mods.guards import check_scope_guard
+from claude_mods.individual import verify_individual
+from claude_mods.model import ModelServer
+from claude_mods.scenarios import check_catalog, check_native_turn
+from claude_mods.transport import AppServer
 
 
 def main():

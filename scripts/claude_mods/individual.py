@@ -1,5 +1,3 @@
-import json
-
 from .transport import AppServer
 
 

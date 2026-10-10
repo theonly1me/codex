@@ -84,6 +84,7 @@ export function register(on) {
 
             install = subprocess.run(
                 [str(binary), "plugin", "add", "live-helper@live-test"],
+                check=False,
                 env=environment,
                 cwd=root,
                 text=True,
