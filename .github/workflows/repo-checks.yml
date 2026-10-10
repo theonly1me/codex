@@ -29,6 +29,9 @@ jobs:
       - name: Test Windows runtime license opt-in
         run: python3 -m unittest discover -s .github/scripts -p 'test_ci_msvc_opt_in.py'
 
+      - name: Test native Windows Bazel ABI selection
+        run: python3 -m unittest discover -s .github/scripts -p 'test_windows_bazel_abi.py'
+
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:

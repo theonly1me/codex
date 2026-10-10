@@ -306,7 +306,14 @@ if [[ "${RUNNER_OS:-}" == "Windows" && $windows_cross_compile -eq 1 && -z "${BUI
   # The Windows cross-compile config depends on authenticated remote
   # execution. When credentials are unavailable, keep the local build shape
   # and its lower concurrency cap.
-  post_config_bazel_args+=(--jobs=8)
+  post_config_bazel_args+=(
+    --jobs=8
+    --platforms=//:windows_x86_64_gnullvm
+    --extra_execution_platforms=//:windows_x86_64_msvc
+    --extra_toolchains=//:windows_gnullvm_tests_on_msvc_host_toolchain
+    --extra_toolchains=//.github/fork:native_windows_msvc
+    --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0
+  )
 fi
 
 if [[ -n "${BAZEL_REPO_CONTENTS_CACHE:-}" ]]; then
