@@ -362,9 +362,6 @@ async fn run_remote_compact_task_inner_impl(
     sess.recompute_token_usage(&replacement_step_context.turn)
         .await;
 
-    crate::session_hooks::for_session(sess)
-        .compacted(sess, compaction_turn_context)
-        .await;
     sess.emit_turn_item_completed(compaction_turn_context, compaction_item)
         .await;
     Ok(())

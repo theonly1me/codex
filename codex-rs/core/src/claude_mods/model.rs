@@ -53,7 +53,6 @@ async fn request(
     let effort = options.effort.clone().or(Some(ReasoningEffort::Low));
     let maximum = options.max_tokens.unwrap_or(4096);
     let mut prompt = Prompt {
-        max_output_tokens: Some(maximum),
         base_instructions: BaseInstructions {
             provenance: None,
             text: options
@@ -79,6 +78,7 @@ async fn request(
         .responses_metadata(&step, CodexResponsesRequestKind::Turn)
         .await;
     let mut client = session.services.model_client.new_session();
+    client.set_max_output_tokens(maximum);
     let started = std::time::Instant::now();
     let mut stream = client
         .stream(

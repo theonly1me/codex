@@ -1,3 +1,4 @@
+mod compaction;
 mod files;
 mod hooks;
 mod host;
@@ -37,6 +38,9 @@ pub(crate) fn message(role: &str, text: String) -> codex_protocol::models::Respo
 mod commands;
 mod patch_events;
 mod tool_input;
+
+#[cfg(test)]
+mod compaction_tests;
 
 mod shell_patch;
 

@@ -41,6 +41,8 @@ pub(crate) fn install(
         let contributor: Arc<dyn codex_extension_api::ThreadLifecycleContributor<Config>> =
             handler.clone();
         builder.thread_lifecycle_contributor(contributor);
+        let contributor: Arc<dyn codex_extension_api::TurnLifecycleContributor> = handler.clone();
+        builder.turn_lifecycle_contributor(contributor);
     }
     Arc::new(builder.build())
 }

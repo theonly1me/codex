@@ -35,6 +35,7 @@ pub(crate) struct TurnCompletion<'a> {
 
 pub(crate) trait SessionHook:
     codex_extension_api::ThreadLifecycleContributor<Config>
+    + codex_extension_api::TurnLifecycleContributor
 {
     fn start<'a>(
         &'a self,
@@ -93,11 +94,6 @@ pub(crate) trait SessionHook:
         completion: TurnCompletion<'a>,
     ) -> BoxFuture<'a, ()> {
         let _ = (session, turn, completion);
-        Box::pin(async {})
-    }
-
-    fn compacted<'a>(&'a self, session: &'a Session, turn: &'a TurnContext) -> BoxFuture<'a, ()> {
-        let _ = (session, turn);
         Box::pin(async {})
     }
 

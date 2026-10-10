@@ -33,6 +33,7 @@ impl SessionHook for ModHooks {
         source: &'a SessionSource,
         disabled: &'a [String],
     ) -> BoxFuture<'a, Result<(), String>> {
+        super::compaction::bind(session, source);
         Box::pin(super::startup::start(session, config, source, disabled))
     }
 
@@ -86,10 +87,6 @@ impl SessionHook for ModHooks {
         ))
     }
 
-    fn compacted<'a>(&'a self, session: &'a Session, turn: &'a TurnContext) -> BoxFuture<'a, ()> {
-        Box::pin(super::lifecycle::compacted(session, turn))
-    }
-
     fn measure<'a>(&'a self, session: &'a Session, turn: &'a TurnContext) -> BoxFuture<'a, ()> {
         Box::pin(super::lifecycle::measure(session, turn))
     }
@@ -114,6 +111,25 @@ impl SessionHook for ModHooks {
         next: ToolContinuation<'a>,
     ) -> BoxFuture<'a, Result<AnyToolResult, FunctionCallError>> {
         Box::pin(super::tools::dispatch(invocation, call_state, next))
+    }
+}
+
+impl codex_extension_api::TurnLifecycleContributor for ModHooks {
+    fn on_turn_start<'a>(
+        &'a self,
+        input: codex_extension_api::TurnStartInput<'a>,
+    ) -> ExtensionFuture<'a, ()> {
+        super::compaction::started(input);
+        Box::pin(async {})
+    }
+
+    fn on_item_completed<'a>(
+        &'a self,
+        thread_store: &'a codex_extension_api::ExtensionData,
+        turn_store: &'a codex_extension_api::ExtensionData,
+        item: &'a codex_protocol::items::TurnItem,
+    ) -> ExtensionFuture<'a, ()> {
+        Box::pin(super::compaction::completed(thread_store, turn_store, item))
     }
 }
 

@@ -97,12 +97,6 @@ impl SessionHooks {
         }
     }
 
-    pub(crate) async fn compacted(&self, session: &Session, turn: &TurnContext) {
-        for handler in &self.handlers {
-            handler.compacted(session, turn).await;
-        }
-    }
-
     pub(crate) async fn measure(&self, session: &Session, turn: &TurnContext) {
         for handler in &self.handlers {
             handler.measure(session, turn).await;

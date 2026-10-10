@@ -21,7 +21,6 @@ use tokio_util::sync::CancellationToken;
 /// API request payload for a single model turn
 #[derive(Debug, Clone)]
 pub struct Prompt {
-    pub(crate) max_output_tokens: Option<u64>,
     /// Conversation context input items.
     pub input: Vec<ResponseItem>,
 
@@ -45,7 +44,6 @@ pub struct Prompt {
 impl Default for Prompt {
     fn default() -> Self {
         Self {
-            max_output_tokens: None,
             input: Vec::new(),
             tools: Arc::default(),
             parallel_tool_calls: false,

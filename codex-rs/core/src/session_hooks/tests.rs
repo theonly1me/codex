@@ -15,6 +15,7 @@ use tokio_util::sync::CancellationToken;
 struct PromptMarker;
 
 impl ThreadLifecycleContributor<Config> for PromptMarker {}
+impl codex_extension_api::TurnLifecycleContributor for PromptMarker {}
 
 impl SessionHook for PromptMarker {
     fn compose<'a>(

@@ -1571,7 +1571,6 @@ pub(crate) fn build_prompt(
 ) -> Prompt {
     let turn_context = &step_context.turn;
     Prompt {
-        max_output_tokens: None,
         input,
         tools: if incremental_tools {
             Arc::default()

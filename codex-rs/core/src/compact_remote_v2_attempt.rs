@@ -94,7 +94,6 @@ pub(super) async fn run_remote_compact_v2_attempt(
     let tool_router = &step_context.tool_router;
     input.push(ResponseItem::CompactionTrigger {});
     let prompt = Prompt {
-        max_output_tokens: None,
         input,
         tools: if tools_in_history {
             Arc::default()

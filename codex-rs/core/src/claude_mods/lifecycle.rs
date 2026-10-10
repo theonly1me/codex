@@ -117,21 +117,6 @@ pub(crate) async fn measure(session: &Session, turn: &TurnContext) {
     }
 }
 
-pub(crate) async fn compacted(session: &Session, turn: &TurnContext) {
-    if let Err(message) = super::state(session)
-        .observe(
-            "classic.SessionStart",
-            scoped(
-                turn,
-                json!({"source":"compact","session_id":session.thread_id.to_string()}),
-            ),
-        )
-        .await
-    {
-        report(session, turn, message).await;
-    }
-}
-
 async fn report(session: &Session, turn: &TurnContext, message: String) {
     session
         .send_event_raw(codex_protocol::protocol::Event {
