@@ -6,6 +6,10 @@ if [[ -z "${BUILDBUDDY_API_KEY:-}" ]]; then
       --@rules_rust//rust/settings:extra_exec_rustc_flag=-Cdebuginfo=0
     )
     echo "Keyless hosted builds disable the disk cache and Rust debug information."
+    if [[ "${RUNNER_OS:-}" != "Windows" && "${bazel_args[0]}" == "test" ]]; then
+      post_config_bazel_args+=(--local_test_jobs=2 --test_env=RUST_TEST_THREADS=1)
+      echo "Hosted local tests use two Bazel test jobs and one Rust test thread."
+    fi
   fi
   if [[ "${RUNNER_OS:-}" == "Windows" ]]; then
     windows_test_config=ci-windows
