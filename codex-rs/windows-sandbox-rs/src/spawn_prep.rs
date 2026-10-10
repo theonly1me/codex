@@ -129,6 +129,7 @@ pub(crate) fn prepare_legacy_spawn_context(
     command: &[String],
     options: SpawnPrepOptions,
 ) -> Result<SpawnContext> {
+    crate::legacy_backend::require_supported_backend()?;
     let common = prepare_spawn_context_common(
         permission_profile,
         workspace_roots,
@@ -509,13 +510,13 @@ mod tests {
     }
 
     #[test]
-    fn legacy_spawn_env_applies_offline_network_rewrite() {
+    fn legacy_spawn_rejection_preserves_the_environment() {
         let codex_home = TempDir::new().expect("tempdir");
         let cwd = TempDir::new().expect("tempdir");
         let mut env_map = HashMap::new();
         let workspace_roots = workspace_roots_for(cwd.path());
 
-        let _context = prepare_legacy_spawn_context(
+        let error = prepare_legacy_spawn_context(
             &PermissionProfile::workspace_write(),
             workspace_roots.as_slice(),
             codex_home.path(),
@@ -527,13 +528,16 @@ mod tests {
                 add_git_safe_directory: false,
             },
         )
-        .expect("legacy env prep");
+        .err()
+        .expect("unsafe legacy preparation must fail");
 
-        assert_eq!(env_map.get("SBX_NONET_ACTIVE"), Some(&"1".to_string()));
-        assert_eq!(
-            env_map.get("HTTP_PROXY"),
-            Some(&"http://127.0.0.1:9".to_string())
+        assert!(
+            error
+                .to_string()
+                .contains("cannot enforce deletion isolation")
         );
+        assert!(env_map.is_empty());
+        assert!(!codex_home.path().join(".sandbox").exists());
     }
 
     #[test]

@@ -11,6 +11,8 @@ mod account_password;
 pub mod environment_transport;
 #[cfg(any(windows, test))]
 mod launch_environment;
+#[cfg(windows)]
+mod legacy_backend;
 #[cfg(any(windows, test))]
 mod setup_acl_error;
 
@@ -951,6 +953,7 @@ mod windows_impl {
         ) else {
             return Ok(());
         };
+        super::legacy_backend::require_supported_backend()?;
         if !permissions.uses_write_capabilities_for_cwd(cwd, env_map) {
             return Ok(());
         }
