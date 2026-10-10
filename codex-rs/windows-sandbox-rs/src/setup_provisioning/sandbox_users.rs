@@ -1,9 +1,7 @@
+use crate::account_password::random_password;
 use anyhow::Result;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
-use rand::RngCore;
-use rand::SeedableRng;
-use rand::rngs::SmallRng;
 use serde::Serialize;
 use std::ffi::OsStr;
 use std::ffi::c_void;
@@ -270,20 +268,6 @@ pub fn sid_bytes_to_psid(sid: &[u8]) -> Result<*mut c_void> {
         ));
     }
     Ok(psid)
-}
-
-fn random_password() -> String {
-    const CHARS: &[u8] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
-    let mut rng = SmallRng::from_entropy();
-    let mut buf = [0u8; 24];
-    rng.fill_bytes(&mut buf);
-    buf.iter()
-        .map(|b| {
-            let idx = (*b as usize) % CHARS.len();
-            CHARS[idx] as char
-        })
-        .collect()
 }
 
 #[derive(Serialize)]
