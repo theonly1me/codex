@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 pub(crate) struct Host {
     pub reactive: Arc<crate::reactive::ReactiveState>,
-    pub runtime: tokio::sync::OnceCell<codex_claude_mod_runtime::WeakModRuntime>,
+    pub runtime: tokio::sync::OnceCell<codex_mod_runtime::WeakModRuntime>,
     pub plugins: HashMap<String, ModPlugin>,
     pub storage: Storage,
     pub ui: Ui,
@@ -127,7 +127,7 @@ impl ModHost for Host {
                     if let Some(runtime) = self
                         .runtime
                         .get()
-                        .and_then(codex_claude_mod_runtime::WeakModRuntime::upgrade)
+                        .and_then(codex_mod_runtime::WeakModRuntime::upgrade)
                     {
                         let origin = first
                             .get("origin")
@@ -141,13 +141,13 @@ impl ModHost for Host {
                     if self
                         .runtime
                         .get()
-                        .and_then(codex_claude_mod_runtime::WeakModRuntime::upgrade)
+                        .and_then(codex_mod_runtime::WeakModRuntime::upgrade)
                         .is_some() =>
                 {
                     let runtime = self
                         .runtime
                         .get()
-                        .and_then(codex_claude_mod_runtime::WeakModRuntime::upgrade)
+                        .and_then(codex_mod_runtime::WeakModRuntime::upgrade)
                         .ok_or("mod runtime stopped")?;
                     let key = first
                         .as_str()

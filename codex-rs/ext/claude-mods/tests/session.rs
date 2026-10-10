@@ -1,5 +1,5 @@
-use codex_claude_mod_runtime::ModPluginRequest;
 use codex_claude_mods_extension::*;
+use codex_mod_runtime::ModPluginRequest;
 use futures::future::BoxFuture;
 use serde_json::Map;
 use serde_json::Value;
@@ -26,7 +26,7 @@ fn request(plugin: ModPlugin, home: &std::path::Path) -> ModSessionRequest {
 }
 
 fn plugin(root: &std::path::Path) -> ModResult<ModPlugin> {
-    codex_claude_mod_runtime::ModPlugin::discover(ModPluginRequest {
+    codex_mod_runtime::ModPlugin::discover(ModPluginRequest {
         id: "fixture@test",
         root,
         options: &Map::new(),

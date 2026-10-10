@@ -2509,33 +2509,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "codex-claude-mod-runtime"
-version = "0.0.0"
-dependencies = [
- "codex-code-mode-runtime",
- "codex-utils-plugins",
- "futures",
- "oxc_allocator",
- "oxc_codegen",
- "oxc_parser",
- "oxc_semantic",
- "oxc_span",
- "oxc_transformer",
- "serde_json",
- "tempfile",
- "tokio",
- "tokio-util",
- "tracing",
- "v8",
-]
-
-[[package]]
 name = "codex-claude-mods-extension"
 version = "0.0.0"
 dependencies = [
- "codex-claude-mod-runtime",
  "codex-exec-server",
  "codex-file-system",
+ "codex-mod-runtime",
  "codex-protocol",
  "codex-utils-path",
  "codex-utils-path-uri",
@@ -4098,6 +4077,27 @@ dependencies = [
  "tempfile",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "codex-mod-runtime"
+version = "0.0.0"
+dependencies = [
+ "codex-code-mode-runtime",
+ "codex-utils-plugins",
+ "futures",
+ "oxc_allocator",
+ "oxc_codegen",
+ "oxc_parser",
+ "oxc_semantic",
+ "oxc_span",
+ "oxc_transformer",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "v8",
 ]
 
 [[package]]

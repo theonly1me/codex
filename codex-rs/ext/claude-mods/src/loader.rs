@@ -1,6 +1,6 @@
 use crate::ModPlugin;
 use crate::ModResult;
-use codex_claude_mod_runtime::ModPluginRequest;
+use codex_mod_runtime::ModPluginRequest;
 use serde_json::Map;
 use serde_json::Value;
 use std::path::PathBuf;

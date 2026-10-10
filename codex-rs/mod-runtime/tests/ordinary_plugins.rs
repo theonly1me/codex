@@ -1,5 +1,5 @@
-use codex_claude_mod_runtime::ModPlugin;
-use codex_claude_mod_runtime::ModPluginRequest;
+use codex_mod_runtime::ModPlugin;
+use codex_mod_runtime::ModPluginRequest;
 use serde_json::Map;
 
 fn discover(root: &std::path::Path) -> Result<Option<ModPlugin>, String> {

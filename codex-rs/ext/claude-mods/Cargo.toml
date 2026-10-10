@@ -14,7 +14,7 @@ test = false
 workspace = true
 
 [dependencies]
-codex-claude-mod-runtime = { workspace = true }
+codex-mod-runtime = { workspace = true }
 codex-exec-server = { workspace = true }
 codex-file-system = { workspace = true }
 codex-protocol = { workspace = true }

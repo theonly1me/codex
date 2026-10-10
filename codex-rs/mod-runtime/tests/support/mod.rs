@@ -1,8 +1,8 @@
-use codex_claude_mod_runtime::HostCall;
-use codex_claude_mod_runtime::ModHost;
-use codex_claude_mod_runtime::ModPlugin;
-use codex_claude_mod_runtime::ModPluginRequest;
-use codex_claude_mod_runtime::ModResult;
+use codex_mod_runtime::HostCall;
+use codex_mod_runtime::ModHost;
+use codex_mod_runtime::ModPlugin;
+use codex_mod_runtime::ModPluginRequest;
+use codex_mod_runtime::ModResult;
 use futures::future::BoxFuture;
 use serde_json::Map;
 use serde_json::Value;

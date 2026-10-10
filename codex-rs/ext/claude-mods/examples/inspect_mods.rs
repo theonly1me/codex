@@ -73,7 +73,7 @@ async fn main() -> Result<(), String> {
             continue;
         }
         let id = format!("{}@inspection", entry.file_name().to_string_lossy());
-        if let Some(plugin) = ModPlugin::discover(codex_claude_mod_runtime::ModPluginRequest {
+        if let Some(plugin) = ModPlugin::discover(codex_mod_runtime::ModPluginRequest {
             id: &id,
             root: &entry.path(),
             options: &Map::new(),

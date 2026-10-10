@@ -1,7 +1,7 @@
 mod support;
 
-use codex_claude_mod_runtime::Dispatch;
-use codex_claude_mod_runtime::ModRuntime;
+use codex_mod_runtime::Dispatch;
+use codex_mod_runtime::ModRuntime;
 use serde_json::Value;
 use serde_json::json;
 use std::sync::Arc;

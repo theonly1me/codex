@@ -1,5 +1,5 @@
-use codex_claude_mod_runtime::ModPluginRequest;
 use codex_claude_mods_extension::*;
+use codex_mod_runtime::ModPluginRequest;
 use futures::future::BoxFuture;
 use serde_json::Map;
 use serde_json::Value;
