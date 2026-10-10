@@ -60,6 +60,10 @@ export function register(on) {
         &session.services.extensions,
         &session.services.thread_extension_data,
     );
+    session.services.extensions = crate::session_hooks::install(
+        &session.services.extensions,
+        &session.services.thread_extension_data,
+    );
     let session = Arc::new(session);
     super::compaction::bind(&session, &turn.session_source);
     let runtime = super::state(&session);

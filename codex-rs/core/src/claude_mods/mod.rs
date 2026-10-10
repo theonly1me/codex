@@ -3,6 +3,7 @@ mod files;
 mod hooks;
 mod host;
 pub(crate) mod lifecycle;
+pub(crate) mod loader;
 mod model;
 mod model_options;
 mod process;

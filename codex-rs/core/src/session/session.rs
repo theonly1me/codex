@@ -1705,7 +1705,17 @@ impl Session {
                 );
             let reasoning_effort_override_enabled =
                 config.features.enabled(Feature::ReasoningEffortOverride) && !title_request;
-            let extensions = crate::session_hooks::install(&extensions, &thread_extension_data);
+            let extensions = crate::session_hooks::prepare(crate::session_hooks::HookContext {
+                registry: &extensions,
+                store: &thread_extension_data,
+                plugins: &plugins_manager,
+                config: &config,
+                source: &session_configuration.session_source,
+                isolation: &isolation,
+                disabled: &session_configuration.disabled_plugin_ids,
+            })
+            .await
+            .map_err(anyhow::Error::msg)?;
             let services = SessionServices {
                 // Start with an empty connection set. The initialized set is
                 // published after SessionConfigured so MCP events follow it.

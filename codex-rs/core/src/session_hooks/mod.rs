@@ -1,6 +1,7 @@
 mod dispatch;
 mod interface;
 mod lifecycle;
+mod setup;
 
 use crate::config::Config;
 use crate::session::session::Session;
@@ -11,6 +12,8 @@ pub(crate) use dispatch::dispatch;
 pub(crate) use interface::SessionHook;
 pub(crate) use interface::ToolContinuation;
 pub(crate) use interface::TurnCompletion;
+pub(crate) use setup::HookContext;
+pub(crate) use setup::prepare;
 
 pub(crate) struct SessionHooks {
     handlers: Vec<Arc<dyn SessionHook>>,
@@ -18,8 +21,11 @@ pub(crate) struct SessionHooks {
 
 impl Default for SessionHooks {
     fn default() -> Self {
+        static HANDLER: std::sync::OnceLock<Arc<dyn SessionHook>> = std::sync::OnceLock::new();
         Self {
-            handlers: vec![Arc::new(crate::claude_mods::ModHooks)],
+            handlers: vec![Arc::clone(
+                HANDLER.get_or_init(|| Arc::new(crate::claude_mods::ModHooks)),
+            )],
         }
     }
 }
@@ -40,9 +46,21 @@ pub(crate) fn install(
     for handler in &hooks.handlers {
         let contributor: Arc<dyn codex_extension_api::ThreadLifecycleContributor<Config>> =
             handler.clone();
-        builder.thread_lifecycle_contributor(contributor);
+        if !registry
+            .thread_lifecycle_contributors()
+            .iter()
+            .any(|registered| Arc::ptr_eq(registered, &contributor))
+        {
+            builder.thread_lifecycle_contributor(contributor);
+        }
         let contributor: Arc<dyn codex_extension_api::TurnLifecycleContributor> = handler.clone();
-        builder.turn_lifecycle_contributor(contributor);
+        if !registry
+            .turn_lifecycle_contributors()
+            .iter()
+            .any(|registered| Arc::ptr_eq(registered, &contributor))
+        {
+            builder.turn_lifecycle_contributor(contributor);
+        }
     }
     Arc::new(builder.build())
 }

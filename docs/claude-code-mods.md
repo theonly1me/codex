@@ -26,6 +26,7 @@ codex plugin add samurai-dojo@claude-code-mods
 
 Use `codex plugin list --json` to inspect installed plugins.
 Use the existing plugin settings to enable or disable a plugin.
+Start a new session after installing or enabling mods.
 Codex refreshes mod settings before each submitted turn.
 A source change restarts executable state at that boundary.
 Persistent state remains in the Codex mod store.

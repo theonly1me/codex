@@ -1,9 +1,7 @@
 use super::host::CoreHost;
 use crate::config::Config;
 use crate::session::session::Session;
-use codex_claude_mods_extension::InstalledModLoader;
 use codex_claude_mods_extension::ModSessionContext;
-use codex_claude_mods_extension::ModSource;
 use codex_protocol::protocol::Event;
 use codex_protocol::protocol::EventMsg;
 use codex_protocol::protocol::SessionSource;
@@ -18,31 +16,8 @@ pub(crate) async fn start(
     if matches!(source, SessionSource::Internal(_)) {
         return Ok(());
     }
-    let input = config.plugins_config_input();
-    let loaded = session
-        .services
-        .plugins_manager
-        .plugins_for_config(&input)
-        .await
-        .without_plugins(disabled);
-    let loader = InstalledModLoader {
-        sources: loaded
-            .plugins()
-            .iter()
-            .map(|plugin| ModSource {
-                id: plugin.config_name.clone(),
-                root: plugin.root.to_path_buf(),
-                enabled: plugin.enabled,
-                active: plugin.is_active(),
-                options: input
-                    .plugins
-                    .plugins
-                    .get(&plugin.config_name)
-                    .map(|configuration| configuration.options.clone())
-                    .unwrap_or_default(),
-            })
-            .collect(),
-    };
+    let loader =
+        super::loader::installed(&session.services.plugins_manager, config, disabled).await;
     super::state(session)
         .load(&loader, || context(session, config, source))
         .await

@@ -23,7 +23,7 @@ It requests host capabilities only when executable state must run or stop.
 An empty catalog does not start V8 or request filesystem access.
 An enabled guard cannot disappear during reload without explicit plugin disablement.
 
-The native adapter lives in `core/src/claude_mods/startup.rs`.
+The native source adapter lives in `core/src/claude_mods/loader.rs`.
 It maps the native plugin manager's approved result into `ModSource` values.
 The extension loader reads module declarations from the original plugin files.
 This preserves inline declarations without adding mod parsing to `core-plugins`.
@@ -42,6 +42,9 @@ An empty hook list disables the adapter without changing the lifecycle call site
 
 The hook registry registers shutdown through upstream `ThreadLifecycleContributor`.
 It registers compaction through upstream `TurnLifecycleContributor`.
+Sessions with no active mods retain the native registry.
+Isolated sessions do not install mod hooks.
+Inherited registries reuse the same contributor without duplicate registration.
 The three native compaction implementations contain no mod calls.
 The native session service structure has no mod field.
 The adapter stores its runtime state in upstream `ExtensionData`.
@@ -73,8 +76,9 @@ Do not resolve generated schema conflicts by selecting an entire side.
 
 1. Run `cargo test -p codex-claude-mods-extension --test loader`.
 2. Run `cargo test -p codex-core --lib session_hooks::tests` with `RUST_MIN_STACK=8388608`.
-3. Run `python3 scripts/claude_mods_smoke.py` with the current CLI binary.
-4. Check both terminal modes for changing Dojo scene cells and resize behavior.
+3. Run the native isolation and internal-session tests to check registry preservation.
+4. Run `python3 scripts/claude_mods_smoke.py` with the current CLI binary.
+5. Check both terminal modes for changing Dojo scene cells and resize behavior.
 
 The loader tests exercise a replacement catalog, inactive native plugins, and failed guard reloads.
 The hook tests exercise replacement registration and native behavior with an empty registry.
