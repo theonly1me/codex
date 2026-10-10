@@ -40,6 +40,10 @@ async fn mcp_server_enforces_sandbox_state_with_codex_sandbox() -> Result<()> {
         "the HTTP MCP fixture executes the host CLI against host filesystem paths"
     );
 
+    #[cfg(windows)]
+    let _account_guard =
+        codex_windows_sandbox_test_support::WindowsSandboxAccountTestGuard::acquire_with_helpers()?;
+
     let responses_server = responses::start_mock_server().await;
     let mcp_server = responses::start_mock_server().await;
     let sandbox_home = tempdir()?;
@@ -51,7 +55,7 @@ async fn mcp_server_enforces_sandbox_state_with_codex_sandbox() -> Result<()> {
     #[cfg(windows)]
     std::fs::write(
         sandbox_home.path().join("config.toml"),
-        "[windows]\nsandbox = \"unelevated\"\n",
+        "[windows]\nsandbox = \"elevated\"\n",
     )?;
     Mock::given(method("POST"))
         .and(path("/mcp"))

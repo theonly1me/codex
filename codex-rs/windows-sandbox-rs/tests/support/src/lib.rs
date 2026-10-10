@@ -2,6 +2,8 @@
 
 #![cfg(windows)]
 
+mod helpers;
+
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io;
@@ -14,6 +16,12 @@ pub struct WindowsSandboxAccountTestGuard {
 }
 
 impl WindowsSandboxAccountTestGuard {
+    pub fn acquire_with_helpers() -> io::Result<Self> {
+        let guard = Self::acquire()?;
+        helpers::stage()?;
+        Ok(guard)
+    }
+
     /// Acquires the same file lock across all test processes run by this Windows user.
     pub fn acquire() -> io::Result<Self> {
         let directory = dirs::data_local_dir().ok_or_else(|| {

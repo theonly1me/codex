@@ -737,6 +737,10 @@ mod tests {
 
     #[test]
     fn sandbox_exec_request_carries_helper_env() {
+        #[cfg(windows)]
+        let _account_guard =
+            codex_windows_sandbox_test_support::WindowsSandboxAccountTestGuard::acquire_with_helpers()
+                .expect("prepare Windows sandbox test accounts and helpers");
         let Some((path_key, path)) = std::env::vars_os().find(|(key, _)| {
             let key = key.to_string_lossy();
             key == "PATH" || (cfg!(windows) && key.eq_ignore_ascii_case("PATH"))
@@ -780,8 +784,7 @@ mod tests {
                 "filesystem sandbox cannot be enforced on this executor"
             );
             crate::FileSystemSandboxContext {
-                windows_sandbox_selection:
-                    codex_file_system::WindowsSandboxSelection::RestrictedToken,
+                windows_sandbox_selection: codex_file_system::WindowsSandboxSelection::Elevated,
                 ..sandbox_context
             }
         };

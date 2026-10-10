@@ -751,7 +751,8 @@ fn elevated_capture_emits_output_and_preserves_descendant_after_normal_exit() {
     );
     assert!(
         wait_for_path(&survival_marker, Duration::from_secs(10)),
-        "sandbox descendant did not survive normal capture exit"
+        "sandbox descendant did not survive normal capture exit: {:?}",
+        fs::read_to_string(codex_home.path().join("descendant.stderr"))
     );
     wait_for_process_exit(&descendant_process, Duration::from_secs(10))
         .expect("sandbox descendant did not exit after release");
@@ -1031,10 +1032,16 @@ async fn assert_elevated_tty_descendant_lifecycle(
     })
     .await
     .expect("spawn elevated sandbox ConPTY lifecycle test");
-    assert!(
-        wait_for_path(&ready_marker, Duration::from_secs(10)),
-        "{lifecycle:?} descendant did not start"
-    );
+    if !wait_for_path(&ready_marker, Duration::from_secs(10)) {
+        spawned.session.request_terminate();
+        let (output, exit_code) =
+            collect_stdout_and_exit(spawned, codex_home.path(), Duration::from_secs(15)).await;
+        panic!(
+            "{lifecycle:?} descendant did not start: exit={exit_code} output={:?} child_error={:?}",
+            String::from_utf8_lossy(&output),
+            fs::read_to_string(codex_home.path().join("descendant.stderr")),
+        );
+    }
     let descendant_pid = fs::read_to_string(&ready_marker)
         .expect("read descendant pid")
         .trim()

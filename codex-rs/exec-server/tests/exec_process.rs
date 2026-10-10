@@ -1524,6 +1524,16 @@ async fn assert_remote_windows_sandbox_process_write(
     expected_sandbox_type: codex_sandboxing::SandboxType,
     tty: bool,
 ) -> Result<()> {
+    #[cfg(windows)]
+    let _account_guard = if expected_sandbox_type
+        == codex_sandboxing::SandboxType::WindowsRestrictedToken
+    {
+        Some(
+            codex_windows_sandbox_test_support::WindowsSandboxAccountTestGuard::acquire_with_helpers()?,
+        )
+    } else {
+        None
+    };
     if expected_sandbox_type == codex_sandboxing::SandboxType::WindowsMxc {
         crate::skip_if_mxc_unavailable!(Ok(()));
     }
@@ -1537,7 +1547,7 @@ async fn assert_remote_windows_sandbox_process_write(
     )?;
     match expected_sandbox_type {
         codex_sandboxing::SandboxType::WindowsRestrictedToken => {
-            sandbox.windows_sandbox_selection = WindowsSandboxSelection::RestrictedToken;
+            sandbox.windows_sandbox_selection = WindowsSandboxSelection::Elevated;
         }
         codex_sandboxing::SandboxType::WindowsMxc => {
             sandbox.windows_sandbox_selection = WindowsSandboxSelection::Mxc;
@@ -2004,7 +2014,7 @@ async fn exec_process_write_then_read_without_tty(use_remote: bool) -> Result<()
 #[test_case(
     codex_sandboxing::SandboxType::WindowsRestrictedToken,
     false;
-    "restricted_token"
+    "elevated"
 )]
 #[test_case(
     codex_sandboxing::SandboxType::WindowsMxc,

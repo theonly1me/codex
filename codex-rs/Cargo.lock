@@ -4533,6 +4533,7 @@ dependencies = [
  "codex-utils-path-uri",
  "codex-utils-pty",
  "codex-windows-sandbox",
+ "codex-windows-sandbox-test-support",
  "dunce",
  "libc",
  "pretty_assertions",
@@ -4544,7 +4545,6 @@ dependencies = [
  "url",
  "which 8.0.0",
 ]
-
 [[package]]
 name = "codex-secrets"
 version = "0.0.0"
@@ -5365,9 +5365,9 @@ dependencies = [
 name = "codex-windows-sandbox-test-support"
 version = "0.0.0"
 dependencies = [
+ "codex-utils-cargo-bin",
  "dirs",
 ]
-
 [[package]]
 name = "codex-workload-identity"
 version = "0.0.0"

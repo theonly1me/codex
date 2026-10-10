@@ -33,7 +33,6 @@ use codex_protocol::permissions::NetworkSandboxPolicy;
 use codex_protocol::protocol::SandboxPolicy;
 use codex_sandboxing::SandboxType;
 use codex_utils_path_uri::PathUri;
-use codex_windows_sandbox_test_support::WindowsSandboxAccountTestGuard;
 use futures::TryStreamExt;
 use pretty_assertions::assert_eq;
 use test_case::test_case;
@@ -367,7 +366,7 @@ async fn file_system_no_follow_operations_reject_named_pipes(
     Ok(())
 }
 
-#[test_case(SandboxType::WindowsRestrictedToken; "restricted_token")]
+#[test_case(SandboxType::WindowsRestrictedToken; "elevated")]
 #[test_case(SandboxType::WindowsMxc; "mxc")]
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn file_system_remote_fs_helper_respects_windows_sandbox_write_policy(
@@ -382,7 +381,7 @@ async fn file_system_remote_fs_helper_respects_windows_sandbox_write_policy(
     let mut sandbox = read_only_sandbox_for_cwd(readonly_dir.clone())?;
     match sandbox_type {
         SandboxType::WindowsRestrictedToken => {
-            sandbox.windows_sandbox_selection = WindowsSandboxSelection::RestrictedToken;
+            sandbox.windows_sandbox_selection = WindowsSandboxSelection::Elevated;
         }
         SandboxType::WindowsMxc => {
             sandbox.windows_sandbox_selection = WindowsSandboxSelection::Mxc;
@@ -458,7 +457,6 @@ async fn file_system_remote_fs_helper_respects_windows_sandbox_write_policy(
 async fn file_system_elevated_relative_read_denial_uses_policy_cwd(
     implementation: FileSystemImplementation,
 ) -> Result<()> {
-    let _account_guard = WindowsSandboxAccountTestGuard::acquire()?;
     // Both implementations re-enter this test binary; the elevated backend finds its helpers
     // next to that binary, while Cargo and Bazel provide them separately.
     let test_exe = std::env::current_exe()?;
@@ -625,7 +623,7 @@ async fn file_system_private_desktop_survives_helper_exits_and_separates_permiss
     }
 
     let mut readonly = read_only_sandbox_for_cwd(tmp.path().to_path_buf())?;
-    readonly.windows_sandbox_selection = WindowsSandboxSelection::RestrictedToken;
+    readonly.windows_sandbox_selection = WindowsSandboxSelection::Elevated;
     file_system
         .write_file(
             &uri,

@@ -33,8 +33,6 @@ jobs:
           Add-Content -LiteralPath $env:GITHUB_ENV -Value ('TMP=' + $env:RUNNER_TEMP)
       - name: Lint the native Windows source and tests
         run: cargo clippy --locked -p codex-windows-sandbox --all-targets -- -D warnings
-      - name: Verify the supported backend and rejected legacy launches
-        run: cargo test --locked -p codex-windows-sandbox --lib -- --nocapture
       - name: Verify that the capture regression fails without the launch guard
         shell: pwsh
         run: |
@@ -55,3 +53,9 @@ jobs:
           }
           cargo test --locked -p codex-windows-sandbox --lib legacy_backend::tests::capture_rejects_legacy_execution_before_deletion -- --exact --nocapture
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the supported backend and rejected legacy launches
+        run: cargo test --locked -p codex-windows-sandbox --lib -- --nocapture
+      - name: Verify supported sandbox preparation
+        run: cargo test --locked -p codex-sandboxing --lib -- --nocapture
+      - name: Verify native executor fixtures
+        run: cargo test --locked -p codex-exec-server --lib --test file_system_windows --test capability_discovery --test exec_process -- --nocapture

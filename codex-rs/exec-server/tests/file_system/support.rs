@@ -27,6 +27,8 @@ pub(crate) struct FileSystemContext {
     pub(crate) file_system: Arc<dyn ExecutorFileSystem>,
     _helper_paths: Option<TestCodexHelperPaths>,
     _server: Option<ExecServerHarness>,
+    #[cfg(windows)]
+    _account_guard: codex_windows_sandbox_test_support::WindowsSandboxAccountTestGuard,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -47,6 +49,9 @@ impl fmt::Display for FileSystemImplementation {
 pub(crate) async fn create_file_system_context(
     implementation: FileSystemImplementation,
 ) -> Result<FileSystemContext> {
+    #[cfg(windows)]
+    let account_guard =
+        codex_windows_sandbox_test_support::WindowsSandboxAccountTestGuard::acquire_with_helpers()?;
     match implementation {
         FileSystemImplementation::Local => {
             let helper_paths = test_codex_helper_paths()?;
@@ -58,6 +63,8 @@ pub(crate) async fn create_file_system_context(
                 file_system: Arc::new(LocalFileSystem::with_runtime_paths(runtime_paths)),
                 _helper_paths: Some(helper_paths),
                 _server: None,
+                #[cfg(windows)]
+                _account_guard: account_guard,
             })
         }
         FileSystemImplementation::Remote => {
@@ -68,6 +75,8 @@ pub(crate) async fn create_file_system_context(
                 file_system: environment.get_filesystem(),
                 _helper_paths: None,
                 _server: Some(server),
+                #[cfg(windows)]
+                _account_guard: account_guard,
             })
         }
     }
@@ -144,7 +153,7 @@ pub(crate) fn workspace_write_sandbox(
         PermissionProfile::from_runtime_permissions(&policy, NetworkSandboxPolicy::Restricted),
         PathUri::from_abs_path(&writable_root),
     );
-    sandbox.windows_sandbox_selection = WindowsSandboxSelection::RestrictedToken;
+    sandbox.windows_sandbox_selection = WindowsSandboxSelection::Elevated;
     sandbox
 }
 
@@ -170,7 +179,7 @@ fn sandbox_context(
         cwd,
     );
     if cfg!(windows) {
-        sandbox.windows_sandbox_selection = WindowsSandboxSelection::RestrictedToken;
+        sandbox.windows_sandbox_selection = WindowsSandboxSelection::Elevated;
     }
     sandbox
 }

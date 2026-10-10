@@ -74,7 +74,7 @@ def test_app_server_runs_code_mode_through_python_sdk(
 ) -> None:
     """Both packages run their own ripgrep through sandboxed SDK code mode."""
     windows = "windows" in package.target
-    sandbox_config = ("--config", 'windows.sandbox="unelevated"') if windows else ()
+    sandbox_config = ("--config", 'windows.sandbox="elevated"') if windows else ()
     if entrypoint == "codex":
         executable = package.cli
         package_root = package.cli_root

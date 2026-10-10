@@ -12,4 +12,5 @@ doctest = false
 workspace = true
 
 [target.'cfg(windows)'.dependencies]
+codex-utils-cargo-bin = { workspace = true }
 dirs = { workspace = true }
