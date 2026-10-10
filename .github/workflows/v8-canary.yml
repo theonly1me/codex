@@ -74,7 +74,7 @@ jobs:
     needs: metadata
     # Metadata always runs; only relevant changes pay for the large matrix.
     if: ${{ needs.metadata.outputs.canary_required == 'true' }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ fromJSON(vars.CODEX_CI_RUNNERS || '{}')[matrix.target] || fromJSON(vars.CODEX_CI_RUNNERS || '{}')[matrix.runner] || matrix.runner }}
     permissions:
       contents: read
       actions: read

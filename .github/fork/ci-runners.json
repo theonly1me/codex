@@ -1,0 +1,8 @@
+{
+  "macos-15-xlarge": "macos-15",
+  "x86_64-apple-darwin": "macos-15-intel",
+  "windows-latest": "windows-latest",
+  "windows-x64": "windows-latest",
+  "sdk": "ubuntu-24.04",
+  "build-timeout-minutes": 120
+}

@@ -1,6 +1,7 @@
 # Claude Code mod integration
 
-The loader and runtime belong to this fork's extension crates.
+The loader belongs to `ext/claude-mods`.
+The runtime belongs to `mod-runtime` and uses the crate name `codex-mod-runtime`.
 Native plugin discovery decides which installed plugins can run.
 It passes a source snapshot to the mod loader.
 It does not import the mod runtime or parse executable modules.
@@ -40,10 +41,14 @@ A host can seed a replacement `SessionHooks` value in upstream `ExtensionData`.
 An empty hook list disables the adapter without changing the lifecycle call sites.
 
 The hook registry registers shutdown through upstream `ThreadLifecycleContributor`.
+It registers compaction through upstream `TurnLifecycleContributor`.
+The three native compaction implementations contain no mod calls.
 The native session service structure has no mod field.
 The adapter stores its runtime state in upstream `ExtensionData`.
 
 Native filesystem, model, approval, and subprocess bridges stay in `core/src/claude_mods`.
+Helper output limits belong to the helper model client session.
+The shared `Prompt` type and its constructors match upstream.
 They retain native permissions and admission rules.
 Future native API changes can require edits inside this adapter.
 The loader and JavaScript runtime remain independent of those private APIs.
@@ -74,3 +79,22 @@ Do not resolve generated schema conflicts by selecting an entire side.
 The loader tests exercise a replacement catalog, inactive native plugins, and failed guard reloads.
 The hook tests exercise replacement registration and native behavior with an empty registry.
 The native suite uses all 11 unchanged personal mods in temporary homes.
+
+## Fork CI runners
+
+The repository variable `CODEX_CI_RUNNERS` supplies runner labels by platform or target.
+The checked-in policy lives in `.github/fork/ci-runners.json`.
+Unset entries retain the upstream runner selection.
+The build timeout entry permits cold builds on standard hosted machines.
+Unset timeouts retain the upstream limits.
+Each workflow keeps its existing checks, targets, and failure rules.
+
+Apply the public fork's policy with:
+
+```sh
+gh variable set CODEX_CI_RUNNERS --repo theonly1me/codex < .github/fork/ci-runners.json
+```
+
+The policy uses standard Linux, Windows, and macOS runners.
+The x86 macOS target uses an Intel host.
+The ARM macOS target uses an ARM host.
