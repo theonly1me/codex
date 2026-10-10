@@ -3170,6 +3170,7 @@ fn loaded_plugins_cache_evicts_least_recently_used_configuration() {
                 format!("plugin-{index}@test"),
                 PluginConfig {
                     enabled: true,
+                    options: serde_json::Map::new(),
                     mcp_servers: HashMap::new(),
                 },
             )]),

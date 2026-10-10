@@ -30,6 +30,7 @@ const COMMAND_COLUMN_WIDTH: ColumnWidthConfig = ColumnWidthConfig::new(
 pub(crate) enum CommandItem {
     Builtin(SlashCommand),
     ServiceTier(ServiceTierCommand),
+    Mod(String),
 }
 
 pub(crate) struct CommandPopup {
@@ -92,6 +93,20 @@ impl CommandPopup {
             commands,
             state: ScrollState::new(),
             daybreak_command_description: flags.daybreak_command_description,
+        }
+    }
+
+    pub(crate) fn set_mod_commands(&mut self, names: &[String]) {
+        self.commands
+            .retain(|command| !matches!(command, CommandItem::Mod(_)));
+        for name in names {
+            if !self
+                .commands
+                .iter()
+                .any(|command| command.command() == name)
+            {
+                self.commands.push(CommandItem::Mod(name.clone()));
+            }
         }
     }
 
@@ -267,6 +282,7 @@ impl CommandItem {
         match self {
             Self::Builtin(cmd) => cmd.command(),
             Self::ServiceTier(command) => &command.name,
+            Self::Mod(name) => name,
         }
     }
 
@@ -274,6 +290,7 @@ impl CommandItem {
         match self {
             Self::Builtin(cmd) => cmd.description(),
             Self::ServiceTier(command) => &command.description,
+            Self::Mod(_) => "Run an installed mod command",
         }
     }
 }
@@ -310,7 +327,7 @@ mod tests {
         let matches = popup.filtered_items();
         let has_init = matches.iter().any(|item| match item {
             CommandItem::Builtin(cmd) => cmd.command() == "init",
-            CommandItem::ServiceTier(_) => false,
+            CommandItem::ServiceTier(_) | CommandItem::Mod(_) => false,
         });
         assert!(
             has_init,
@@ -328,6 +345,7 @@ mod tests {
         let selected = popup.selected_item();
         match selected {
             Some(CommandItem::Builtin(cmd)) => assert_eq!(cmd.command(), "init"),
+            Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
             Some(CommandItem::ServiceTier(command)) => {
                 panic!("expected init command, got service tier {command:?}")
             }
@@ -342,6 +360,7 @@ mod tests {
         let matches = popup.filtered_items();
         match matches.first() {
             Some(CommandItem::Builtin(cmd)) => assert_eq!(cmd.command(), "model"),
+            Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
             Some(CommandItem::ServiceTier(command)) => {
                 panic!("expected model command, got service tier {command:?}")
             }
@@ -438,6 +457,7 @@ mod tests {
             .map(|item| match item {
                 CommandItem::Builtin(cmd) => cmd.command().to_string(),
                 CommandItem::ServiceTier(command) => command.name,
+                CommandItem::Mod(name) => name,
             })
             .collect();
         assert_eq!(
@@ -526,6 +546,7 @@ mod tests {
             .map(|item| match item {
                 CommandItem::Builtin(cmd) => cmd.command().to_string(),
                 CommandItem::ServiceTier(command) => command.name,
+                CommandItem::Mod(name) => name,
             })
             .collect();
         assert!(
@@ -601,6 +622,7 @@ mod tests {
             .map(|item| match item {
                 CommandItem::Builtin(cmd) => cmd.command().to_string(),
                 CommandItem::ServiceTier(command) => command.name,
+                CommandItem::Mod(name) => name,
             })
             .collect();
         assert!(
@@ -631,6 +653,7 @@ mod tests {
 
         match popup.selected_item() {
             Some(CommandItem::Builtin(cmd)) => assert_eq!(cmd.command(), "plan"),
+            Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
             Some(CommandItem::ServiceTier(command)) => {
                 panic!("expected plan command, got service tier {command:?}")
             }
@@ -647,6 +670,7 @@ mod tests {
             .map(|item| match item {
                 CommandItem::Builtin(cmd) => cmd.command().to_string(),
                 CommandItem::ServiceTier(command) => command.name,
+                CommandItem::Mod(name) => name,
             })
             .collect();
 

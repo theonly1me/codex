@@ -18,6 +18,9 @@ mod thread_list;
 mod web_search;
 
 #[cfg(test)]
+mod claude_mods_tests;
+
+#[cfg(test)]
 #[path = "app_server_session/collaboration_catalog_tests.rs"]
 mod collaboration_catalog_tests;
 
@@ -1913,6 +1916,7 @@ fn config_request_overrides_from_config(
                     | "network"
                     | "permissions"
                     | "personality"
+                    | "plugins"
                     | "sandbox_workspace_write"
                     | "shell_environment_policy"
                     | "suppress_unstable_features_warning"

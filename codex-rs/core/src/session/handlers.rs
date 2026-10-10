@@ -302,6 +302,9 @@ pub(super) async fn shutdown_session_runtime(sess: &Arc<Session>) {
         shell_snapshot_prewarm.abort();
         let _ = shell_snapshot_prewarm.await;
     }
+    if let Err(error) = sess.services.claude_mods.stop().await {
+        warn!(%error, "Claude mod shutdown failed");
+    }
     sess.hooks().shutdown().await;
     sess.async_hook_results.close();
     while sess.async_hook_results.try_recv().is_ok() {}

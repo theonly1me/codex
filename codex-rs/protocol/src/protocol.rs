@@ -1356,6 +1356,7 @@ pub struct EnvironmentConnectionEvent {
 #[ts(tag = "type")]
 #[strum(serialize_all = "snake_case")]
 pub enum EventMsg {
+    ClaudeMod(crate::claude_mods::ClaudeModEvent),
     /// Error while executing a submission
     Error(ErrorEvent),
 

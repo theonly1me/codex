@@ -192,6 +192,8 @@ impl ChatWidget {
                 })),
             );
         }
+        let mod_flex = 0;
+        flex.push(mod_flex, RenderableItem::Borrowed(&self.mod_ui));
         flex.push(
             /*flex*/ 0,
             self.bottom_pane_renderable(crate::bottom_pane::ComposerRenderOptions::default())

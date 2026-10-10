@@ -2003,6 +2003,10 @@ fn prepend_header_if_missing(path: &Path) -> Result<()> {
             .with_context(|| format!("Failed to read {}", path.display()))?;
     }
 
+    if crate::claude_mod_exports::is_claude_mod_export(path) {
+        fs::write(path, crate::claude_mod_exports::declaration(&content))?;
+        return Ok(());
+    }
     if content.starts_with(GENERATED_TS_HEADER) {
         return Ok(());
     }

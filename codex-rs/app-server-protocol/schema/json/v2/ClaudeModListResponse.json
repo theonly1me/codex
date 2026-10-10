@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ModCommand": {
+      "properties": {
+        "argumentHint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "immediate": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "pluginId": {
+          "type": "string"
+        },
+        "qualifiedName": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "immediate",
+        "name",
+        "pluginId",
+        "qualifiedName"
+      ],
+      "type": "object"
+    },
+    "ModPane": {
+      "properties": {
+        "closeOnEscape": {
+          "type": "boolean"
+        },
+        "columns": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "focus": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "isPlaced": {
+          "type": "boolean"
+        },
+        "pluginId": {
+          "type": "string"
+        },
+        "rows": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "closeOnEscape",
+        "columns",
+        "focus",
+        "id",
+        "isPlaced",
+        "pluginId",
+        "rows",
+        "title"
+      ],
+      "type": "object"
+    }
+  },
+  "properties": {
+    "commands": {
+      "items": {
+        "$ref": "#/definitions/ModCommand"
+      },
+      "type": "array"
+    },
+    "panes": {
+      "items": {
+        "$ref": "#/definitions/ModPane"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "commands",
+    "panes"
+  ],
+  "title": "ClaudeModListResponse",
+  "type": "object"
+}

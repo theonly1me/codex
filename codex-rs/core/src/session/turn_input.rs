@@ -219,7 +219,21 @@ pub(super) async fn handle(
     mode: TurnInputMode,
     submission_id: String,
 ) -> CodexResult<TurnInputSubmission> {
-    let request = request.into();
+    let turn = session.new_default_turn().await;
+    crate::claude_mods::start(
+        session,
+        &turn.config,
+        &turn.session_source,
+        &turn.disabled_plugin_ids,
+    )
+    .await
+    .map_err(CodexErr::InvalidRequest)?;
+    let mut request = request.into();
+    if !crate::claude_mods::submit(session, &mut request).await? {
+        return Ok(TurnInputSubmission::NotSubmitted {
+            reason: codex_protocol::turn_input::NotSubmittedReason::EmptyInput,
+        });
+    }
     let result = match mode {
         TurnInputMode::StartOrSteer => start_or_steer(session, request, submission_id).await,
         TurnInputMode::StartIfIdle => {

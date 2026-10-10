@@ -38,6 +38,7 @@ fn hooks_file_deserializes_existing_json_shape() {
         parsed,
         HooksFile {
             description: Some("Optional stop-time review gate for Codex Companion.".to_string()),
+            modules: Vec::new(),
             hooks: HookEventsToml {
                 pre_tool_use: vec![MatcherGroup {
                     matcher: Some("^Bash$".to_string()),

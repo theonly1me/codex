@@ -6880,6 +6880,8 @@ pub(crate) async fn make_session_and_context() -> (Session, TurnContext) {
     )
     .expect("initialize test hooks");
     let services = SessionServices {
+        claude_mods: Default::default(),
+        user_input_serialization: tokio::sync::Semaphore::new(1),
         mcp_runtime,
         mcp_handler_cache: Default::default(),
         unified_exec_manager: UnifiedExecProcessManager::new(
@@ -9146,6 +9148,8 @@ where
     )
     .expect("initialize test hooks");
     let services = SessionServices {
+        claude_mods: Default::default(),
+        user_input_serialization: tokio::sync::Semaphore::new(1),
         mcp_runtime,
         mcp_handler_cache: Default::default(),
         unified_exec_manager: UnifiedExecProcessManager::new(

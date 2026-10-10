@@ -93,6 +93,7 @@ pub fn should_persist_response_item_for_memories(item: &ResponseItem) -> bool {
 #[inline]
 pub fn should_persist_event_msg(ev: &EventMsg, history_mode: ThreadHistoryMode) -> bool {
     match ev {
+        EventMsg::ClaudeMod(_) => false,
         EventMsg::ItemCompleted(event) => {
             // Paginated rollouts store TurnItems.
             // Legacy rollouts keep only items with no lossless raw ResponseItem or legacy

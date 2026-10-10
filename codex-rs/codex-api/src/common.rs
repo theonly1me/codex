@@ -280,6 +280,8 @@ pub struct ResponsesApiRequest {
     // Keep routing fields first: serde serializes struct fields in declaration order, and
     // gateways may inspect request bodies incrementally before potentially multi-megabyte input.
     pub model: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_output_tokens: Option<u64>,
     pub stream: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<String>,
@@ -309,6 +311,7 @@ impl<'a> From<&'a ResponsesApiRequest> for ResponseCreateWsRequest<'a> {
     fn from(request: &'a ResponsesApiRequest) -> Self {
         Self {
             model: &request.model,
+            max_output_tokens: request.max_output_tokens,
             instructions: &request.instructions,
             previous_response_id: None,
             input: &request.input,
@@ -335,6 +338,8 @@ pub struct ResponseCreateWsRequest<'a> {
     // Keep routing fields first: serde serializes struct fields in declaration order, and
     // gateways may inspect request bodies incrementally before potentially multi-megabyte input.
     pub model: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_output_tokens: Option<u64>,
     pub stream: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_tier: Option<&'a str>,

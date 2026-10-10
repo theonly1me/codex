@@ -1265,6 +1265,10 @@ async fn realtime_timeline_splits_accepted_steering_and_persists_promoted_artifa
     harness
         .read_notification::<TurnStartedNotification>("turn/started")
         .await?;
+    let initial_input = harness
+        .read_notification::<ItemCompletedNotification>("item/completed")
+        .await?;
+    assert!(matches!(initial_input.item, ThreadItem::UserMessage { .. }));
 
     harness
         .append_text(harness.thread_id.clone(), "Trigger speech")

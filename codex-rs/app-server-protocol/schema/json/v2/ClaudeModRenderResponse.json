@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ModElement": {
+      "properties": {
+        "children": {
+          "default": [],
+          "items": {
+            "$ref": "#/definitions/ModNode"
+          },
+          "type": "array"
+        },
+        "element": {
+          "type": "string"
+        },
+        "plugin": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "props": {
+          "additionalProperties": true,
+          "default": {},
+          "type": "object"
+        }
+      },
+      "required": [
+        "element"
+      ],
+      "type": "object"
+    },
+    "ModNode": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "$ref": "#/definitions/ModElement"
+        },
+        {
+          "items": {
+            "$ref": "#/definitions/ModNode"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "tree": {
+      "$ref": "#/definitions/ModNode"
+    }
+  },
+  "required": [
+    "tree"
+  ],
+  "title": "ClaudeModRenderResponse",
+  "type": "object"
+}

@@ -69,3 +69,6 @@ pub(crate) use codex_app_server_protocol_noop_macros::TS;
 pub(crate) use schemars::JsonSchema;
 #[cfg(test)]
 pub(crate) use ts_rs::TS;
+
+#[cfg(test)]
+mod claude_mod_exports;

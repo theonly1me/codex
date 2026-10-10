@@ -32,7 +32,7 @@ pub fn initialize_v8(jit_mode: V8JitMode) -> Result<(), String> {
     }
 }
 
-pub(crate) fn ensure_v8_initialized() -> Result<(), String> {
+pub fn ensure_v8_initialized() -> Result<(), String> {
     match V8_INITIALIZATION.get_or_init(|| initialize_v8_with_mode(V8JitMode::Enabled)) {
         Ok(_) => Ok(()),
         Err(error_text) => Err(error_text.clone()),

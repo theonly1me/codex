@@ -96,6 +96,7 @@ impl ChatWidget {
             pet_http_client.clone(),
         );
         let mut widget = Self {
+            mod_ui: Default::default(),
             empty_state_animation: std::cell::RefCell::new(empty_state_animation),
             daybreak_enabled: false,
             app_event_tx: app_event_tx.clone(),

@@ -279,6 +279,32 @@ pub(crate) struct AgentsOverviewThreadRefresh {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, IntoStaticStr)]
 pub(crate) enum AppEvent {
+    ClaudeModRefresh,
+    ClaudeModCopy {
+        text: String,
+    },
+    ClaudeModCommand {
+        plugin_id: String,
+        name: String,
+        arguments: String,
+    },
+    ClaudeModControl {
+        interaction: codex_app_server_protocol::ClaudeModInteraction,
+    },
+    ClaudeModFrames {
+        thread_id: String,
+        result: Result<
+            (
+                codex_app_server_protocol::ClaudeModListResponse,
+                Vec<(String, codex_protocol::claude_mods::ModNode)>,
+            ),
+            String,
+        >,
+    },
+    ClaudeModCommandResult {
+        thread_id: String,
+        result: Result<String, String>,
+    },
     AccountEmailLoaded {
         request_id: uuid::Uuid,
         email: Option<String>,

@@ -55,6 +55,7 @@ pub(crate) enum StatusDetailsCapitalization {
 pub(crate) struct StatusIndicatorWidget {
     /// Animated header text (defaults to "Working").
     header: String,
+    mod_header: Option<String>,
     header_started_at: Instant,
     details: Option<String>,
     details_max_lines: usize,
@@ -97,6 +98,7 @@ impl StatusIndicatorWidget {
     ) -> Self {
         Self {
             header: String::from("Working"),
+            mod_header: None,
             header_started_at: Instant::now(),
             details: None,
             details_max_lines: STATUS_DETAILS_DEFAULT_MAX_LINES,
@@ -109,6 +111,10 @@ impl StatusIndicatorWidget {
             animations_enabled,
             effects,
         }
+    }
+
+    pub(crate) fn set_mod_header(&mut self, header: Option<String>) {
+        self.mod_header = header.filter(|header| !header.is_empty());
     }
 
     pub(crate) fn interrupt(&self) {
@@ -242,7 +248,7 @@ impl StatusIndicator<'_> {
             spans.push(" ".into());
         }
         spans.extend(summary_shimmer(
-            &row.header,
+            row.mod_header.as_deref().unwrap_or(&row.header),
             now.saturating_duration_since(row.header_started_at),
             shimmer,
         ));

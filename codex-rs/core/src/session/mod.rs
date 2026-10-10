@@ -2268,6 +2268,30 @@ impl Session {
 
     /// Persist the event to rollout and send it to clients.
     pub(crate) async fn send_event(&self, turn_context: &TurnContext, msg: EventMsg) {
+        let mod_item = match &msg {
+            EventMsg::ItemStarted(event) => self
+                .services
+                .claude_mods
+                .owns_process_call(&event.item.id()),
+            EventMsg::ItemCompleted(event) => self
+                .services
+                .claude_mods
+                .owns_process_call(&event.item.id()),
+            _ => false,
+        };
+        if mod_item {
+            return;
+        }
+        let process_call = match &msg {
+            EventMsg::ExecCommandBegin(event) => Some(event.call_id.as_str()),
+            EventMsg::ExecCommandEnd(event) => Some(event.call_id.as_str()),
+            EventMsg::ExecCommandOutputDelta(event) => Some(event.call_id.as_str()),
+            EventMsg::TerminalInteraction(event) => Some(event.call_id.as_str()),
+            _ => None,
+        };
+        if process_call.is_some_and(|id| self.services.claude_mods.owns_process_call(id)) {
+            return;
+        }
         let legacy_source = msg.clone();
         if let EventMsg::Error(error) = &legacy_source
             && error
@@ -2459,6 +2483,19 @@ impl Session {
             debug!("failed to finalize realtime handoff output: {err}");
         }
         self.conversation.clear_active_handoff().await;
+    }
+
+    pub(crate) async fn submit_mod_prompt(
+        self: &Arc<Self>,
+        request: TurnInputRequest,
+    ) -> CodexResult<TurnInputSubmission> {
+        turn_input::handle(
+            self,
+            request,
+            TurnInputMode::StartOrSteer,
+            new_submission_id(),
+        )
+        .await
     }
 
     pub(crate) async fn send_event_raw(&self, event: Event) {
@@ -3068,6 +3105,12 @@ impl Session {
         call_id: String,
         args: RequestUserInputArgs,
     ) -> Option<AcceptedUserInputResponse> {
+        let _serialization = self
+            .services
+            .user_input_serialization
+            .acquire()
+            .await
+            .ok()?;
         let _elicitation = self.services.elicitations.register();
         let sub_id = turn_context.sub_id.clone();
         let (tx_response, rx_response) = oneshot::channel();
@@ -3079,7 +3122,7 @@ impl Session {
                     let mut ts = at.turn_state.lock().await;
                     ts.insert_pending_user_input(sub_id, tx_response)
                 }
-                None => None,
+                None => return None,
             }
         };
         if prev_entry.is_some() {
@@ -4832,6 +4875,7 @@ impl Session {
             let state = self.state.lock().await;
             state.token_info_and_rate_limits()
         };
+        crate::claude_mods::lifecycle::measure(self, turn_context).await;
         let event = EventMsg::TokenCount(TokenCountEvent { info, rate_limits });
         self.send_event(turn_context, event).await;
     }

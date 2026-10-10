@@ -1557,6 +1557,18 @@ impl MessageProcessor {
             ClientRequest::MarketplaceUpgrade { params, .. } => {
                 self.marketplace_processor.marketplace_upgrade(params).await
             }
+            ClientRequest::ClaudeModList { params, .. } => {
+                self.thread_processor.claude_mod_list(params).await
+            }
+            ClientRequest::ClaudeModCommand { params, .. } => {
+                self.thread_processor.claude_mod_command(params).await
+            }
+            ClientRequest::ClaudeModRender { params, .. } => {
+                self.thread_processor.claude_mod_render(params).await
+            }
+            ClientRequest::ClaudeModControl { params, .. } => {
+                self.thread_processor.claude_mod_control(params).await
+            }
             ClientRequest::PluginList { params, .. } => {
                 self.plugin_processor.plugin_list(params).await
             }

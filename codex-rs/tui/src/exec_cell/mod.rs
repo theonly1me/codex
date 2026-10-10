@@ -1,5 +1,6 @@
 mod compact;
 mod live_output;
+mod mod_props;
 mod model;
 mod render;
 mod transcript;

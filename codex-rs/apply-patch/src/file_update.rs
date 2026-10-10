@@ -44,6 +44,34 @@ pub(crate) async fn derive_new_contents_from_chunks(
             })
         })?;
 
+    let new_contents = preview_file_update(ProposedFileUpdate {
+        path,
+        original_contents: &original_contents,
+        chunks,
+        update_file_mode,
+    })?;
+    Ok(AppliedPatch {
+        original_contents,
+        new_contents,
+    })
+}
+
+pub struct ProposedFileUpdate<'source> {
+    pub path: &'source PathUri,
+    pub original_contents: &'source str,
+    pub chunks: &'source [UpdateFileChunk],
+    pub update_file_mode: ApplyPatchFileUpdateMode,
+}
+
+pub fn preview_file_update(
+    request: ProposedFileUpdate<'_>,
+) -> std::result::Result<String, ApplyPatchError> {
+    let ProposedFileUpdate {
+        path,
+        original_contents,
+        chunks,
+        update_file_mode,
+    } = request;
     let path_text = path.inferred_native_path_string();
     let new_contents = match update_file_mode {
         ApplyPatchFileUpdateMode::NormalizeToLf => {
@@ -67,7 +95,7 @@ pub(crate) async fn derive_new_contents_from_chunks(
             new_lines.join("\n")
         }
         ApplyPatchFileUpdateMode::PreserveLineEndings => {
-            let mut source_file = SourceFile::parse(&original_contents);
+            let mut source_file = SourceFile::parse(original_contents);
             let original_lines = source_file.line_texts();
             let replacements =
                 compute_replacements(&original_lines, &path_text, chunks, update_file_mode)?;
@@ -75,10 +103,7 @@ pub(crate) async fn derive_new_contents_from_chunks(
             source_file.into_contents()
         }
     };
-    Ok(AppliedPatch {
-        original_contents,
-        new_contents,
-    })
+    Ok(new_contents)
 }
 
 /// Compute a list of replacements needed to transform `original_lines` into the

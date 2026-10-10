@@ -274,6 +274,152 @@
         }
       ]
     },
+    "ClaudeModCommandParams": {
+      "properties": {
+        "arguments": {
+          "default": "",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "pluginId": {
+          "type": "string"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "pluginId",
+        "threadId"
+      ],
+      "type": "object"
+    },
+    "ClaudeModControlParams": {
+      "properties": {
+        "interaction": {
+          "$ref": "#/definitions/ClaudeModInteraction"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "interaction",
+        "threadId"
+      ],
+      "type": "object"
+    },
+    "ClaudeModInteraction": {
+      "oneOf": [
+        {
+          "properties": {
+            "callback_id": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "callback"
+              ],
+              "type": "string"
+            },
+            "value": true
+          },
+          "required": [
+            "callback_id",
+            "kind",
+            "value"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "close"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "plugin_id"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "element": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "id": {
+              "type": "string"
+            },
+            "is_focused": {
+              "type": "boolean"
+            },
+            "kind": {
+              "enum": [
+                "focus"
+              ],
+              "type": "string"
+            },
+            "plugin_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "is_focused",
+            "kind",
+            "plugin_id"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ClaudeModListParams": {
+      "properties": {
+        "interactive": {
+          "default": false,
+          "type": "boolean"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "threadId"
+      ],
+      "type": "object"
+    },
+    "ClaudeModRenderParams": {
+      "properties": {
+        "render": {
+          "$ref": "#/definitions/ModRenderRequest"
+        },
+        "threadId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "render",
+        "threadId"
+      ],
+      "type": "object"
+    },
     "ClientInfo": {
       "properties": {
         "name": {
@@ -2274,6 +2420,46 @@
           "type": "array"
         }
       },
+      "type": "object"
+    },
+    "ModRenderRequest": {
+      "properties": {
+        "columns": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "component": {
+          "type": "string"
+        },
+        "isFocused": {
+          "type": "boolean"
+        },
+        "isWorking": {
+          "type": "boolean"
+        },
+        "props": {
+          "additionalProperties": true,
+          "default": {},
+          "type": "object"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "rows": {
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "columns",
+        "component",
+        "isFocused",
+        "isWorking",
+        "requestId",
+        "rows"
+      ],
       "type": "object"
     },
     "ModeKind": {
@@ -6954,6 +7140,102 @@
         "params"
       ],
       "title": "Marketplace/upgradeRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "claudeMod/list"
+          ],
+          "title": "ClaudeMod/listRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/ClaudeModListParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "ClaudeMod/listRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "claudeMod/command"
+          ],
+          "title": "ClaudeMod/commandRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/ClaudeModCommandParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "ClaudeMod/commandRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "claudeMod/render"
+          ],
+          "title": "ClaudeMod/renderRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/ClaudeModRenderParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "ClaudeMod/renderRequest",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/RequestId"
+        },
+        "method": {
+          "enum": [
+            "claudeMod/control"
+          ],
+          "title": "ClaudeMod/controlRequestMethod",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/definitions/ClaudeModControlParams"
+        }
+      },
+      "required": [
+        "id",
+        "method",
+        "params"
+      ],
+      "title": "ClaudeMod/controlRequest",
       "type": "object"
     },
     {

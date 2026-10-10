@@ -64,6 +64,9 @@ impl ChatWidget {
         if self.handle_question_key(key_event) {
             return KeyEventAction::None;
         }
+        if !self.bottom_pane.has_active_view() && self.mod_key(key_event) {
+            return KeyEventAction::None;
+        }
         if self.bottom_pane.has_active_view()
             && !matches!(
                 key_event,

@@ -168,6 +168,7 @@ pub(crate) async fn run_turn(
     prewarmed_client_session: Option<ModelClientSession>,
     cancellation_token: CancellationToken,
 ) -> CodexResult<Option<String>> {
+    crate::claude_mods::turn_start(&sess, &turn_context, &input).await?;
     if crate::guardian::is_basic_session_source(&turn_context.session_source) {
         crate::guardian::check_pending_guardian_input(&sess, &turn_context).await?;
     }
@@ -1604,6 +1605,7 @@ pub(crate) fn build_prompt(
 ) -> Prompt {
     let turn_context = &step_context.turn;
     Prompt {
+        max_output_tokens: None,
         input,
         tools: step_context.tool_router.model_visible_specs(),
         parallel_tool_calls: true,
@@ -1644,7 +1646,8 @@ async fn run_sampling_request(
     } else {
         None
     };
-    let base_instructions = sess.get_prompt_base_instructions().await;
+    let base_instructions =
+        crate::claude_mods::compose(&sess, sess.get_prompt_base_instructions().await).await?;
 
     let tool_runtime = ToolCallRuntime::new(
         Arc::clone(&sess),
@@ -2074,6 +2077,7 @@ pub(super) enum RealtimeEventText {
 
 pub(super) fn realtime_text_for_event(msg: &EventMsg) -> Option<RealtimeEventText> {
     match msg {
+        EventMsg::ClaudeMod(_) => None,
         EventMsg::ElicitationRequest(request)
             if matches!(
                 &request.request,
@@ -2580,7 +2584,7 @@ async fn try_run_sampling_request(
     let effort = sess
         .reasoning_effort_for_request(&step_context.settings, super::RequestEffortUsage::Sampling)
         .await;
-    let mut stream = client_session
+    let stream = client_session
         .stream(
             prompt,
             &step_context.settings.model_info,
@@ -2594,6 +2598,8 @@ async fn try_run_sampling_request(
         .instrument(trace_span!("stream_request"))
         .or_cancel(&cancellation_token)
         .await??;
+    let mut stream =
+        crate::claude_mods::wrap_stream(&sess, &turn_context, stream, cancellation_token.clone());
     if cancellation_token.is_cancelled() {
         return Err(CodexErr::TurnAborted);
     }

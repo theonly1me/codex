@@ -374,6 +374,7 @@ async fn run_remote_compact_task_inner_impl(
     .await;
     sess.recompute_token_usage(compaction_turn_context).await;
 
+    crate::claude_mods::lifecycle::compacted(sess, compaction_turn_context).await;
     sess.emit_turn_item_completed(compaction_turn_context, compaction_item)
         .await;
     Ok(())

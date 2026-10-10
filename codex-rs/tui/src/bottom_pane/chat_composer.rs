@@ -593,6 +593,7 @@ impl ChatComposerConfig {
 }
 
 pub(crate) struct ChatComposer {
+    pub(crate) mod_command_names: Vec<String>,
     draft: DraftState,
     popups: PopupState,
     app_event_tx: AppEventSender,
@@ -725,6 +726,7 @@ impl ChatComposer {
 
         let mut this = Self {
             draft: DraftState::new(),
+            mod_command_names: Vec::new(),
             popups: PopupState::default(),
             app_event_tx,
             history: ChatComposerHistory::new(),
@@ -2988,6 +2990,7 @@ impl ChatComposer {
             && let SubmissionValidation::UnknownCommand(name) = self
                 .slash_input()
                 .validate_submission(&text, input_starts_with_space)
+            && !self.mod_command_names.contains(&name)
         {
             let message = format!(
                 r#"Unrecognized command '/{name}'. Type "/" for a list of supported commands."#
@@ -3931,9 +3934,16 @@ impl ChatComposer {
         let caret_on_first_line = cursor <= first_line_end;
 
         let is_editing_slash_command_name = caret_on_first_line
-            && self
+            && (self
                 .slash_input()
-                .is_editing_command_name(first_line, cursor);
+                .is_editing_command_name(first_line, cursor)
+                || slash_input::command_popup_filter_text(first_line, cursor).is_some_and(
+                    |token| {
+                        self.mod_command_names
+                            .iter()
+                            .any(|name| name.starts_with(token.trim_start_matches('/')))
+                    },
+                ));
         let command_filter_text = caret_on_first_line
             .then(|| slash_input::command_popup_filter_text(first_line, cursor))
             .flatten();
@@ -3949,6 +3959,7 @@ impl ChatComposer {
         }
         match &mut self.popups.active {
             ActivePopup::Command(popup) => {
+                popup.set_mod_commands(&self.mod_command_names);
                 if is_editing_slash_command_name {
                     if let Some(command_filter_text) = command_filter_text.as_deref() {
                         popup.on_composer_text_change(command_filter_text.to_string());
@@ -3961,7 +3972,9 @@ impl ChatComposer {
                 if is_editing_slash_command_name
                     && let Some(command_filter_text) = command_filter_text.as_deref()
                 {
-                    let command_popup = self.slash_input().command_popup(command_filter_text);
+                    let mut command_popup = self.slash_input().command_popup(command_filter_text);
+                    command_popup.set_mod_commands(&self.mod_command_names);
+                    command_popup.on_composer_text_change(command_filter_text.to_string());
                     self.popups.active = ActivePopup::Command(command_popup);
                 }
             }
@@ -9350,6 +9363,7 @@ mod tests {
                 Some(CommandItem::Builtin(cmd)) => {
                     assert_eq!(cmd.command(), "model")
                 }
+                Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
                 Some(CommandItem::ServiceTier(command)) => {
                     panic!("expected model command, got service tier {command:?}")
                 }
@@ -9432,6 +9446,7 @@ mod tests {
                 Some(CommandItem::Builtin(cmd)) => {
                     assert_eq!(cmd.command(), "resume")
                 }
+                Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
                 Some(CommandItem::ServiceTier(command)) => {
                     panic!("expected resume command, got service tier {command:?}")
                 }
@@ -9486,6 +9501,7 @@ mod tests {
                 Some(CommandItem::Builtin(cmd)) => {
                     assert_eq!(cmd.command(), "pets")
                 }
+                Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
                 Some(CommandItem::ServiceTier(command)) => {
                     panic!("expected pets command, got service tier {command:?}")
                 }
@@ -9540,6 +9556,7 @@ mod tests {
                 Some(CommandItem::Builtin(cmd)) => {
                     assert_eq!(cmd.command(), "btw")
                 }
+                Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
                 Some(CommandItem::ServiceTier(command)) => {
                     panic!("expected btw command, got service tier {command:?}")
                 }
@@ -9594,6 +9611,7 @@ mod tests {
                 Some(CommandItem::Builtin(cmd)) => {
                     assert_eq!(cmd.command(), "side")
                 }
+                Some(CommandItem::Mod(name)) => panic!("unexpected mod command {name}"),
                 Some(CommandItem::ServiceTier(command)) => {
                     panic!("expected side command, got service tier {command:?}")
                 }

@@ -815,6 +815,15 @@ impl Session {
             }
             self.emit_turn_abort_lifecycle(reason.clone(), turn_context.extension_data.as_ref())
                 .await;
+            let is_aborted = true;
+            crate::claude_mods::turn_complete(
+                self,
+                &turn_context,
+                last_agent_message.as_deref(),
+                is_aborted,
+                duration_ms,
+            )
+            .await;
             EventMsg::TurnAborted(TurnAbortedEvent {
                 turn_id: Some(turn_context.sub_id.clone()),
                 reason,
@@ -831,6 +840,15 @@ impl Session {
             let error = turn_context.terminal_error.lock().await.clone();
             self.emit_turn_stop_lifecycle(turn_context.extension_data.as_ref())
                 .await;
+            let is_aborted = false;
+            crate::claude_mods::turn_complete(
+                self,
+                &turn_context,
+                last_agent_message.as_deref(),
+                is_aborted,
+                duration_ms,
+            )
+            .await;
             EventMsg::TurnComplete(TurnCompleteEvent {
                 turn_id: turn_context.sub_id.clone(),
                 last_agent_message,
@@ -998,6 +1016,16 @@ impl Session {
             });
         self.emit_turn_abort_lifecycle(reason.clone(), task.turn_context.extension_data.as_ref())
             .await;
+        let answer = None;
+        let is_aborted = true;
+        crate::claude_mods::turn_complete(
+            self,
+            &task.turn_context,
+            answer,
+            is_aborted,
+            duration_ms,
+        )
+        .await;
         let event = EventMsg::TurnAborted(TurnAbortedEvent {
             turn_id: Some(task.turn_context.sub_id.clone()),
             reason,

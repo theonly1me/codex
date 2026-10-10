@@ -669,6 +669,12 @@ impl BottomPane {
         enabled
     }
 
+    pub(crate) fn set_mod_header(&mut self, header: Option<String>) {
+        if let Some(status) = self.status.as_mut() {
+            status.set_mod_header(header);
+        }
+    }
+
     pub fn status_widget(&self) -> Option<&StatusIndicatorWidget> {
         self.status.as_ref()
     }
@@ -1075,6 +1081,10 @@ impl BottomPane {
         ) {
             self.request_redraw_in(delay);
         }
+    }
+
+    pub(crate) fn set_mod_command_names(&mut self, names: Vec<String>) {
+        self.composer.mod_command_names = names;
     }
 
     /// Replace the composer text with `text`.
