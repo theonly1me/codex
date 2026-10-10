@@ -1,3 +1,5 @@
+exports_files(["llvm-windows-header-parser.patch"])
+
 toolchain(
     name = "native_windows_msvc",
     exec_compatible_with = [
