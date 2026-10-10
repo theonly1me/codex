@@ -1,0 +1,49 @@
+name: windows-delete-repair
+
+on:
+  push:
+    branches: [fix/windows-delete-isolation]
+
+jobs:
+  native-repair:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      CARGO_PROFILE_DEV_DEBUG: 0
+      CARGO_PROFILE_TEST_DEBUG: 0
+      CARGO_INCREMENTAL: 0
+      RUST_TEST_THREADS: 1
+      RUST_MIN_STACK: 8388608
+    defaults:
+      run:
+        working-directory: codex-rs
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - name: Build the native setup and command helpers
+        run: cargo build --locked -p codex-windows-sandbox --bins
+      - name: Lint the native Windows source and tests
+        run: cargo clippy --locked -p codex-windows-sandbox --all-targets -- -D warnings
+      - name: Verify the supported backend and rejected legacy launches
+        run: cargo test --locked -p codex-windows-sandbox --lib -- --nocapture
+      - name: Verify that the capture regression fails without the launch guard
+        shell: pwsh
+        run: |
+          $path = 'windows-sandbox-rs/src/spawn_prep.rs'
+          $saved = Get-Content -LiteralPath $path -Raw
+          $mutated = $saved.Replace('    crate::legacy_backend::require_supported_backend()?;', '')
+          if ($mutated -eq $saved) { throw 'The guard mutation did not apply' }
+          try {
+            Set-Content -LiteralPath $path -Value $mutated -NoNewline
+            Select-String -Path $path -Pattern 'prepare_legacy_spawn_context' -Context 0,20
+            $output = & cargo test --locked -p codex-windows-sandbox --lib legacy_backend::tests::capture_rejects_legacy_execution_before_deletion -- --exact --nocapture 2>&1
+            $status = $LASTEXITCODE
+            $output | Write-Output
+            if ($status -eq 0) { throw 'The regression passed without the launch guard' }
+            if (($output | Out-String) -notmatch 'the unsafe legacy launch succeeded') { throw 'The mutation failed for another cause' }
+          } finally {
+            Set-Content -LiteralPath $path -Value $saved -NoNewline
+          }
+          cargo test --locked -p codex-windows-sandbox --lib legacy_backend::tests::capture_rejects_legacy_execution_before_deletion -- --exact --nocapture
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
