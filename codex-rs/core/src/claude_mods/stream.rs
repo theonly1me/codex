@@ -29,7 +29,7 @@ pub(crate) fn wrap(
     mut stream: ResponseStream,
     cancellation: CancellationToken,
 ) -> ResponseStream {
-    let Some(runtime) = session.services.claude_mods.runtime() else {
+    let Some(runtime) = super::state(session).runtime() else {
         return stream;
     };
     let interrupt = stream.interrupt.take();

@@ -2,6 +2,7 @@
 
 This fork runs executable Claude Code plugin modules in the Codex CLI and app-server.
 The compatibility target is the 11 personal mods at commit `6d69bf8871bb088c3bdf5b5526b03dce633cdb88`.
+See [the integration boundaries](claude-code-mods-architecture.md) for loader isolation and upstream maintenance.
 
 ## Install
 
@@ -99,13 +100,13 @@ Terminal resize requests a new render tree.
 
 Clients use these methods after `thread/start`:
 
-| Method | Purpose |
-| --- | --- |
-| `claudeMod/list` | List registered commands and panes. Set `interactive` when the client renders controls. |
-| `claudeMod/command` | Run a registered command with its plugin ID and arguments. |
-| `claudeMod/render` | Request a typed render tree for a component and viewport. |
-| `claudeMod/control` | Invoke a current callback, close a pane, or report focus. |
-| `claudeMod/changed` | Receive command, pane, raster, status, clipboard, and diagnostic notifications. |
+| Method              | Purpose                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| `claudeMod/list`    | List registered commands and panes. Set `interactive` when the client renders controls. |
+| `claudeMod/command` | Run a registered command with its plugin ID and arguments.                              |
+| `claudeMod/render`  | Request a typed render tree for a component and viewport.                               |
+| `claudeMod/control` | Invoke a current callback, close a pane, or report focus.                               |
+| `claudeMod/changed` | Receive command, pane, raster, status, clipboard, and diagnostic notifications.         |
 
 Clients must use callback IDs from their latest render tree.
 Old callback IDs fail after a replacement render or pane close.

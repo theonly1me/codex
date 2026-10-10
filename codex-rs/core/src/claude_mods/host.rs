@@ -138,7 +138,7 @@ async fn submit(session: &Arc<Session>, call: &HostCall) -> ModResult<Value> {
         ]);
         request.start.turn_trigger = Some(format!("claude-mod:{}", call.plugin));
         session
-            .submit_mod_prompt(request)
+            .submit_extension_prompt(request)
             .await
             .map_err(|error| error.to_string())?;
     }

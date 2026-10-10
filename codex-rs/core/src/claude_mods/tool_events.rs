@@ -27,12 +27,7 @@ pub(crate) async fn events(invocation: &ToolInvocation) -> ModResult<Vec<Value>>
     }
     if name == "write_stdin"
         && let Some(id) = input["session_id"].as_u64()
-        && let Some(mut event) = invocation
-            .session
-            .services
-            .claude_mods
-            .process_event(id)
-            .await
+        && let Some(mut event) = super::state(&invocation.session).process_event(id).await
     {
         event["session_id"] = json!(id);
         return Ok(vec![event]);
@@ -102,19 +97,11 @@ pub(crate) async fn result(
             });
             if let Some(id) = id {
                 if exit.is_null() {
-                    invocation
-                        .session
-                        .services
-                        .claude_mods
+                    super::state(&invocation.session)
                         .record_process(id, event.clone())
                         .await;
                 } else {
-                    invocation
-                        .session
-                        .services
-                        .claude_mods
-                        .forget_process(id)
-                        .await;
+                    super::state(&invocation.session).forget_process(id).await;
                 }
             }
             outcome["result"] = json!({"stdout":output["output"].as_str().or_else(|| output.as_str()).unwrap_or_default(),"stderr":"","exitCode":exit,"interrupted":false});

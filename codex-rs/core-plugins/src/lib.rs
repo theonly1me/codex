@@ -1,7 +1,6 @@
 mod app_mcp_routing;
 mod artifact_operation;
 mod catalog;
-mod claude_mods;
 mod command_migration;
 mod discoverable;
 mod error_subtype;
@@ -64,7 +63,6 @@ pub use catalog::PluginCatalog;
 pub use catalog::PluginCatalogEntry;
 pub use catalog::PluginIdentity;
 pub use catalog::PluginSourceLocation;
-pub use claude_mods::load_claude_mod_plugins;
 pub use command_migration::CommandDescriptionMode;
 pub use command_migration::CommandMigrationProfile;
 pub use command_migration::RewriteProfile as CommandRewriteProfile;

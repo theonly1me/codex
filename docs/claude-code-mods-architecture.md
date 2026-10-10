@@ -1,0 +1,76 @@
+# Claude Code mod integration
+
+The loader and runtime belong to this fork's extension crates.
+Native plugin discovery decides which installed plugins can run.
+It passes a source snapshot to the mod loader.
+It does not import the mod runtime or parse executable modules.
+
+```text
+Native plugin manager -> ModSource[] -> ModLoader -> ModSession -> JavaScript runtime
+Core lifecycle -> SessionHooks -> ModHooks -> ModSession
+ModSession -> typed events -> app-server transport -> client renderer
+```
+
+## Loader boundary
+
+`codex-claude-mods-extension` exports `ModLoader`, `InstalledModLoader`, and `ModSource`.
+`ModLoader::load` returns enabled plugin identities and discovered executable modules.
+A different catalog can implement this trait without importing the native plugin manager.
+
+`ModSession::load` owns discovery errors, reload checks, activation, and runtime replacement.
+It requests host capabilities only when executable state must run or stop.
+An empty catalog does not start V8 or request filesystem access.
+An enabled guard cannot disappear during reload without explicit plugin disablement.
+
+The native adapter lives in `core/src/claude_mods/startup.rs`.
+It maps the native plugin manager's approved result into `ModSource` values.
+The extension loader reads module declarations from the original plugin files.
+This preserves inline declarations without adding mod parsing to `core-plugins`.
+
+## Session hook boundary
+
+`core/src/session_hooks` owns the hook interface and ordered middleware chain.
+Its default registration contains `ModHooks`.
+Core lifecycle paths call this interface.
+They do not access `ModSession` or import Claude compatibility code.
+
+`SessionHook` covers input, instructions, turn events, streams, tools, compaction, and client event filtering.
+Defaults preserve native input, instructions, streams, and tool execution.
+A host can seed a replacement `SessionHooks` value in upstream `ExtensionData`.
+An empty hook list disables the adapter without changing the lifecycle call sites.
+
+The hook registry registers shutdown through upstream `ThreadLifecycleContributor`.
+The native session service structure has no mod field.
+The adapter stores its runtime state in upstream `ExtensionData`.
+
+Native filesystem, model, approval, and subprocess bridges stay in `core/src/claude_mods`.
+They retain native permissions and admission rules.
+Future native API changes can require edits inside this adapter.
+The loader and JavaScript runtime remain independent of those private APIs.
+
+## Remaining upstream integration
+
+Some integration changes remain necessary:
+
+1. Core calls the session hook interface at native lifecycle boundaries.
+2. Plugin configuration accepts per-plugin options and module declarations.
+3. Native patch preview and model requests expose the capabilities that mod helpers require.
+4. Protocol enums carry typed mod events and app-server requests.
+5. The terminal composes mod views above the existing composer and routes controls.
+6. Generated schemas and SDK types reflect those protocol additions.
+
+These changes can still conflict with upstream edits.
+Keep each adapter call small and keep compatibility decisions inside the owned modules.
+Regenerate schemas after an upstream merge.
+Do not resolve generated schema conflicts by selecting an entire side.
+
+## Verify the boundary
+
+1. Run `cargo test -p codex-claude-mods-extension --test loader`.
+2. Run `cargo test -p codex-core --lib session_hooks::tests` with `RUST_MIN_STACK=8388608`.
+3. Run `python3 scripts/claude_mods_smoke.py` with the current CLI binary.
+4. Check both terminal modes for changing Dojo scene cells and resize behavior.
+
+The loader tests exercise a replacement catalog, inactive native plugins, and failed guard reloads.
+The hook tests exercise replacement registration and native behavior with an empty registry.
+The native suite uses all 11 unchanged personal mods in temporary homes.

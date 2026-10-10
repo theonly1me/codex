@@ -169,7 +169,9 @@ pub(crate) async fn run_turn(
     prewarmed_client_session: Option<ModelClientSession>,
     cancellation_token: CancellationToken,
 ) -> CodexResult<Option<String>> {
-    crate::claude_mods::turn_start(&sess, &turn_context, &input).await?;
+    crate::session_hooks::for_session(&sess)
+        .turn_start(&sess, &turn_context, &input)
+        .await?;
     if crate::guardian::is_basic_session_source(&turn_context.session_source) {
         crate::guardian::check_pending_guardian_input(&sess, &turn_context).await?;
     }
@@ -1621,8 +1623,9 @@ async fn run_sampling_request(
     } else {
         None
     };
-    let base_instructions =
-        crate::claude_mods::compose(&sess, sess.get_prompt_base_instructions().await).await?;
+    let base_instructions = crate::session_hooks::for_session(&sess)
+        .compose(&sess, sess.get_prompt_base_instructions().await)
+        .await?;
 
     let tool_runtime = ToolCallRuntime::new(
         Arc::clone(&sess),
@@ -2580,8 +2583,12 @@ async fn try_run_sampling_request(
         .instrument(trace_span!("stream_request"))
         .or_cancel(&cancellation_token)
         .await??;
-    let mut stream =
-        crate::claude_mods::wrap_stream(&sess, &turn_context, stream, cancellation_token.clone());
+    let mut stream = crate::session_hooks::for_session(&sess).stream(
+        &sess,
+        &turn_context,
+        stream,
+        cancellation_token.clone(),
+    );
     if cancellation_token.is_cancelled() {
         return Err(CodexErr::TurnAborted);
     }

@@ -1705,9 +1705,8 @@ impl Session {
                 );
             let reasoning_effort_override_enabled =
                 config.features.enabled(Feature::ReasoningEffortOverride) && !title_request;
+            let extensions = crate::session_hooks::install(&extensions, &thread_extension_data);
             let services = SessionServices {
-                claude_mods: Default::default(),
-                user_input_serialization: Semaphore::new(1),
                 // Start with an empty connection set. The initialized set is
                 // published after SessionConfigured so MCP events follow it.
                 mcp_runtime,
@@ -1955,7 +1954,7 @@ impl Session {
 
             // record_initial_history can emit events. We record only after the SessionConfiguredEvent is emitted.
             Box::pin(sess.record_initial_history(initial_history)).await;
-            Box::pin(crate::claude_mods::start(
+            Box::pin(crate::session_hooks::for_session(&sess).start(
                 &sess,
                 &config,
                 &session_configuration.session_source,

@@ -1,8 +1,9 @@
 use super::host::CoreHost;
 use crate::config::Config;
 use crate::session::session::Session;
-use codex_claude_mods_extension::ModSessionRequest;
-use codex_core_plugins::load_claude_mod_plugins;
+use codex_claude_mods_extension::InstalledModLoader;
+use codex_claude_mods_extension::ModSessionContext;
+use codex_claude_mods_extension::ModSource;
 use codex_protocol::protocol::Event;
 use codex_protocol::protocol::EventMsg;
 use codex_protocol::protocol::SessionSource;
@@ -24,29 +25,34 @@ pub(crate) async fn start(
         .plugins_for_config(&input)
         .await
         .without_plugins(disabled);
-    let plugins = match load_claude_mod_plugins(&loaded, &input, &config.codex_home) {
-        Ok(plugins) => plugins,
-        Err(error) => {
-            session.services.claude_mods.discovery_failed(error.clone());
-            return Err(error);
-        }
+    let loader = InstalledModLoader {
+        sources: loaded
+            .plugins()
+            .iter()
+            .map(|plugin| ModSource {
+                id: plugin.config_name.clone(),
+                root: plugin.root.to_path_buf(),
+                enabled: plugin.enabled,
+                active: plugin.is_active(),
+                options: input
+                    .plugins
+                    .plugins
+                    .get(&plugin.config_name)
+                    .map(|configuration| configuration.options.clone())
+                    .unwrap_or_default(),
+            })
+            .collect(),
     };
-    let enabled = loaded
-        .plugins()
-        .iter()
-        .filter(|plugin| plugin.enabled)
-        .map(|plugin| plugin.config_name.clone())
-        .collect::<Vec<_>>();
-    session
-        .services
-        .claude_mods
-        .validate_reload(&enabled, &plugins)?;
-    if plugins.is_empty()
-        && session.services.claude_mods.runtime().is_none()
-        && session.services.claude_mods.check().is_ok()
-    {
-        return Ok(());
-    }
+    super::state(session)
+        .load(&loader, || context(session, config, source))
+        .await
+}
+
+async fn context(
+    session: &Arc<Session>,
+    config: &Config,
+    source: &SessionSource,
+) -> Result<ModSessionContext, String> {
     let weak = Arc::downgrade(session);
     let sink: codex_claude_mods_extension::EventSink = Arc::new(move |event| {
         let weak = weak.clone();
@@ -73,19 +79,14 @@ pub(crate) async fn start(
         .as_path()
         .display()
         .to_string();
-    session
-        .services
-        .claude_mods
-        .start(ModSessionRequest {
-            plugins,
-            codex_home: config.codex_home.to_path_buf(),
-            cwd,
-            session_id: session.thread_id.to_string(),
-            interactive: matches!(source, SessionSource::Cli),
-            delegate: Arc::new(CoreHost {
-                session: Arc::downgrade(session),
-            }),
-            sink,
-        })
-        .await
+    Ok(ModSessionContext {
+        codex_home: config.codex_home.to_path_buf(),
+        cwd,
+        session_id: session.thread_id.to_string(),
+        interactive: matches!(source, SessionSource::Cli),
+        delegate: Arc::new(CoreHost {
+            session: Arc::downgrade(session),
+        }),
+        sink,
+    })
 }

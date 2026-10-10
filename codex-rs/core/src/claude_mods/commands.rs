@@ -28,9 +28,7 @@ pub(crate) async fn run(session: &Arc<Session>, call: &HostCall) -> ModResult<Va
             .await;
         return Ok(json!({"text":""}));
     }
-    let candidates = session
-        .services
-        .claude_mods
+    let candidates = super::state(session)
         .commands()
         .await
         .into_iter()
@@ -47,9 +45,7 @@ pub(crate) async fn run(session: &Arc<Session>, call: &HostCall) -> ModResult<Va
             }
         })
         .ok_or_else(|| format!("unknown or ambiguous mod command {command}"))?;
-    session
-        .services
-        .claude_mods
+    super::state(session)
         .run_command(&registered.plugin_id, &registered.name, args)
         .await
         .map(|text| json!({"text":text}))

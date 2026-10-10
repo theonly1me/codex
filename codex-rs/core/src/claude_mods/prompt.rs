@@ -12,12 +12,10 @@ pub(crate) async fn submit(
     session: &Session,
     request: &mut WithTurnExtensionData<TurnInputRequest>,
 ) -> Result<bool, CodexErr> {
-    session
-        .services
-        .claude_mods
+    super::state(session)
         .check()
         .map_err(CodexErr::InvalidRequest)?;
-    if session.services.claude_mods.runtime().is_none() {
+    if super::state(session).runtime().is_none() {
         return Ok(true);
     }
     if request
@@ -52,9 +50,7 @@ pub(crate) async fn submit(
     }
     let turn = session.new_default_turn().await;
     let input = super::lifecycle::scoped(&turn, input);
-    let event = session
-        .services
-        .claude_mods
+    let event = super::state(session)
         .observe("prompt.submit", input)
         .await
         .map_err(CodexErr::InvalidRequest)?;

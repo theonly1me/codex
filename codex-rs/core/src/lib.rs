@@ -16,6 +16,7 @@ mod realtime_conversation;
 mod realtime_history;
 mod realtime_prompt;
 mod responses_headers;
+mod session_hooks;
 pub use responses_headers::CodexResponsesHeaders;
 mod responses_metadata;
 mod responses_retry;

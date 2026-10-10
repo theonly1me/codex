@@ -1,8 +1,8 @@
 use crate::function_tool::FunctionCallError;
+use crate::session_hooks::ToolContinuation;
 use crate::tools::context::ToolCallState;
 use crate::tools::context::ToolInvocation;
 use crate::tools::registry::AnyToolResult;
-use crate::tools::registry::ToolRegistry;
 use codex_claude_mods_extension::Dispatch;
 use codex_claude_mods_extension::ModResult;
 use futures::future::BoxFuture;
@@ -11,21 +11,16 @@ use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-pub(crate) async fn dispatch(
-    registry: &ToolRegistry,
+pub(crate) async fn dispatch<'call>(
     invocation: ToolInvocation,
     call_state: Option<Arc<ToolCallState>>,
+    mut next: ToolContinuation<'call>,
 ) -> Result<AnyToolResult, FunctionCallError> {
-    invocation
-        .session
-        .services
-        .claude_mods
+    super::state(&invocation.session)
         .check()
         .map_err(FunctionCallError::RespondToModel)?;
-    let Some(runtime) = invocation.session.services.claude_mods.runtime() else {
-        return registry
-            .dispatch_native_with_state(invocation, call_state)
-            .await;
+    let Some(runtime) = super::state(&invocation.session).runtime() else {
+        return next(invocation, call_state).await;
     };
     let events = super::tool_events::events(&invocation)
         .await
@@ -33,13 +28,13 @@ pub(crate) async fn dispatch(
     let result = Arc::new(Mutex::new(None));
     let first_event_index = 0;
     let outcome = chain(
-        registry,
         &runtime,
         &events,
         first_event_index,
         invocation.clone(),
         call_state,
         Arc::clone(&result),
+        Arc::new(std::sync::Mutex::new(next)),
     )
     .await;
     let mut native = result.lock().await.take();
@@ -105,21 +100,23 @@ pub(crate) async fn dispatch(
     })
 }
 
-fn chain<'call>(
-    registry: &'call ToolRegistry,
+fn chain<'call, 'next: 'call>(
     runtime: &'call codex_claude_mods_extension::ModRuntime,
     events: &'call [Value],
     index: usize,
     invocation: ToolInvocation,
     call_state: Option<Arc<ToolCallState>>,
     result: Arc<Mutex<Option<Result<AnyToolResult, FunctionCallError>>>>,
+    next: Arc<std::sync::Mutex<ToolContinuation<'next>>>,
 ) -> BoxFuture<'call, ModResult<Value>> {
     Box::pin(async move {
         let Some(event) = events.get(index) else {
-            let native = match registry
-                .dispatch_native_with_state(invocation, call_state)
-                .await
-            {
+            let continuation = next
+                .lock()
+                .map_err(|_| "tool continuation lock poisoned".to_string())?(
+                invocation, call_state,
+            );
+            let native = match continuation.await {
                 Ok(native) => native,
                 Err(error) => {
                     let message = error.to_string();
@@ -141,6 +138,7 @@ fn chain<'call>(
                     input: event.clone(),
                 },
                 |changed| {
+                    let next = Arc::clone(&next);
                     let mut next_invocation = invocation.clone();
                     let next_result = Arc::clone(&result);
                     let next_state = call_state.clone();
@@ -149,13 +147,13 @@ fn chain<'call>(
                     async move {
                         updated?;
                         let outcome = chain(
-                            registry,
                             runtime,
                             events,
                             index + 1,
                             next_invocation,
                             next_state,
                             next_result,
+                            next,
                         )
                         .await?;
                         Ok(super::tool_events::result(&result_invocation, event, outcome).await)

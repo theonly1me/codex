@@ -1,11 +1,18 @@
 mod activation;
 mod host;
+mod loader;
+mod loading;
 mod render;
 mod session;
 mod storage;
 mod ui;
 mod ui_dimensions;
 
+pub use loader::InstalledModLoader;
+pub use loader::LoadedMods;
+pub use loader::ModLoader;
+pub use loader::ModSource;
+pub use loading::ModSessionContext;
 pub use session::ModSession;
 pub use session::ModSessionRequest;
 

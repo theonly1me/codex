@@ -49,8 +49,6 @@ use tokio::runtime::Handle;
 use tokio::sync::Mutex;
 
 pub(crate) struct SessionServices {
-    pub(crate) claude_mods: codex_claude_mods_extension::ModSession,
-    pub(crate) user_input_serialization: tokio::sync::Semaphore,
     /// The single owner of live MCP connections for this thread.
     pub(crate) mcp_runtime: Arc<McpRuntime>,
     /// Immutable MCP handlers scoped to this thread's current binding.

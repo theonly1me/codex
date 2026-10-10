@@ -45,10 +45,7 @@ pub(crate) async fn run(session: &Arc<Session>, call: &HostCall) -> ModResult<Va
     let cancellation_token = CancellationToken::new();
     let _cancel_on_drop = cancellation_token.clone().drop_guard();
     let call_id = format!("mod-{}", uuid::Uuid::new_v4());
-    session
-        .services
-        .claude_mods
-        .register_process_call(call_id.clone());
+    super::state(session).register_process_call(call_id.clone());
     let invocation = ToolInvocation {
         session: Arc::clone(session),
         turn: Arc::clone(&step.turn),

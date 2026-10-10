@@ -613,7 +613,7 @@ impl ToolRegistry {
         invocation: ToolInvocation,
         call_state: Option<Arc<ToolCallState>>,
     ) -> Result<AnyToolResult, FunctionCallError> {
-        crate::claude_mods::dispatch(self, invocation, call_state).await
+        crate::session_hooks::dispatch(self, invocation, call_state).await
     }
 
     #[expect(

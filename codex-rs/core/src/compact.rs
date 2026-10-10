@@ -416,7 +416,9 @@ async fn run_compact_task_inner_impl(
     sess.recompute_token_usage(&replacement_step_context.turn)
         .await;
 
-    crate::claude_mods::lifecycle::compacted(&sess, &turn_context).await;
+    crate::session_hooks::for_session(&sess)
+        .compacted(&sess, &turn_context)
+        .await;
     sess.emit_turn_item_completed(&turn_context, compaction_item)
         .await;
     let warning = EventMsg::Warning(WarningEvent {

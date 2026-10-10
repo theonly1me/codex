@@ -26,9 +26,7 @@ pub(crate) async fn turn_start(
         })
         .collect::<Vec<_>>()
         .join("\n");
-    session
-        .services
-        .claude_mods
+    super::state(session)
         .observe(
             "turn.start",
             scoped(turn, json!({"turnId":turn.sub_id,"text":text})),
@@ -42,17 +40,13 @@ pub(crate) async fn compose(
     session: &Session,
     mut instructions: BaseInstructions,
 ) -> Result<BaseInstructions, CodexErr> {
-    session
-        .services
-        .claude_mods
+    super::state(session)
         .check()
         .map_err(CodexErr::InvalidRequest)?;
-    if session.services.claude_mods.runtime().is_none() {
+    if super::state(session).runtime().is_none() {
         return Ok(instructions);
     }
-    let result = session
-        .services
-        .claude_mods
+    let result = super::state(session)
         .observe(
             "prompt.compose",
             json!({"sections":[{"id":"codex","text":instructions.text,"scope":"shared"}]}),
@@ -85,12 +79,7 @@ pub(crate) async fn turn_complete(
         turn,
         json!({"turnId":turn.sub_id,"answer":answer.unwrap_or_default(),"text":answer.unwrap_or_default(),"reason":if is_aborted {"aborted"} else {"answer"},"isAborted":is_aborted,"durationMs":duration_ms}),
     );
-    if let Err(message) = session
-        .services
-        .claude_mods
-        .observe("turn.complete", event)
-        .await
-    {
+    if let Err(message) = super::state(session).observe("turn.complete", event).await {
         report(session, turn, message).await;
     }
 }
@@ -106,7 +95,7 @@ pub(crate) fn scoped(turn: &TurnContext, mut event: Value) -> Value {
 }
 
 pub(crate) async fn measure(session: &Session, turn: &TurnContext) {
-    if session.services.claude_mods.runtime().is_none() {
+    if super::state(session).runtime().is_none() {
         return;
     }
     let tokens = session.get_total_token_usage().await;
@@ -120,9 +109,7 @@ pub(crate) async fn measure(session: &Session, turn: &TurnContext) {
         turn,
         json!({"changed":["context"],"context":{"tokens":tokens,"window":window,"percent":percent}}),
     );
-    if let Err(message) = session
-        .services
-        .claude_mods
+    if let Err(message) = super::state(session)
         .observe("session.measure", event)
         .await
     {
@@ -131,9 +118,7 @@ pub(crate) async fn measure(session: &Session, turn: &TurnContext) {
 }
 
 pub(crate) async fn compacted(session: &Session, turn: &TurnContext) {
-    if let Err(message) = session
-        .services
-        .claude_mods
+    if let Err(message) = super::state(session)
         .observe(
             "classic.SessionStart",
             scoped(

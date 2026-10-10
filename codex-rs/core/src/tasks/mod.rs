@@ -828,14 +828,17 @@ impl Session {
             self.emit_turn_abort_lifecycle(reason.clone(), turn_context.extension_data.as_ref())
                 .await;
             let is_aborted = true;
-            crate::claude_mods::turn_complete(
-                self,
-                &turn_context,
-                last_agent_message.as_deref(),
-                is_aborted,
-                duration_ms,
-            )
-            .await;
+            crate::session_hooks::for_session(self)
+                .complete(
+                    self,
+                    &turn_context,
+                    crate::session_hooks::TurnCompletion {
+                        answer: last_agent_message.as_deref(),
+                        is_aborted,
+                        duration_ms,
+                    },
+                )
+                .await;
             EventMsg::TurnAborted(TurnAbortedEvent {
                 root_turn_id: Some(turn_context.root_turn_id()),
                 turn_id: Some(turn_context.sub_id.clone()),
@@ -854,14 +857,17 @@ impl Session {
             self.emit_turn_stop_lifecycle(turn_context.extension_data.as_ref())
                 .await;
             let is_aborted = false;
-            crate::claude_mods::turn_complete(
-                self,
-                &turn_context,
-                last_agent_message.as_deref(),
-                is_aborted,
-                duration_ms,
-            )
-            .await;
+            crate::session_hooks::for_session(self)
+                .complete(
+                    self,
+                    &turn_context,
+                    crate::session_hooks::TurnCompletion {
+                        answer: last_agent_message.as_deref(),
+                        is_aborted,
+                        duration_ms,
+                    },
+                )
+                .await;
             EventMsg::TurnComplete(TurnCompleteEvent {
                 root_turn_id: Some(turn_context.root_turn_id()),
                 turn_id: turn_context.sub_id.clone(),
@@ -1032,14 +1038,17 @@ impl Session {
             .await;
         let answer = None;
         let is_aborted = true;
-        crate::claude_mods::turn_complete(
-            self,
-            &task.turn_context,
-            answer,
-            is_aborted,
-            duration_ms,
-        )
-        .await;
+        crate::session_hooks::for_session(self)
+            .complete(
+                self,
+                &task.turn_context,
+                crate::session_hooks::TurnCompletion {
+                    answer,
+                    is_aborted,
+                    duration_ms,
+                },
+            )
+            .await;
         let event = EventMsg::TurnAborted(TurnAbortedEvent {
             root_turn_id: Some(task.turn_context.root_turn_id()),
             turn_id: Some(task.turn_context.sub_id.clone()),

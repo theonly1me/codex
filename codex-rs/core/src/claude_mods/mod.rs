@@ -1,4 +1,5 @@
 mod files;
+mod hooks;
 mod host;
 pub(crate) mod lifecycle;
 mod model;
@@ -12,8 +13,16 @@ mod thread;
 mod tool_events;
 mod tools;
 
-pub(crate) use startup::start;
-pub(crate) use tools::dispatch;
+pub(crate) use hooks::ModHooks;
+
+pub(crate) fn state(
+    session: &crate::session::session::Session,
+) -> std::sync::Arc<codex_claude_mods_extension::ModSession> {
+    session
+        .services
+        .thread_extension_data
+        .get_or_init(codex_claude_mods_extension::ModSession::default)
+}
 
 pub(crate) fn message(role: &str, text: String) -> codex_protocol::models::ResponseItem {
     codex_protocol::models::ResponseItem::Message {
@@ -24,12 +33,6 @@ pub(crate) fn message(role: &str, text: String) -> codex_protocol::models::Respo
         internal_chat_message_metadata_passthrough: None,
     }
 }
-
-pub(crate) use lifecycle::compose;
-pub(crate) use lifecycle::turn_complete;
-pub(crate) use lifecycle::turn_start;
-pub(crate) use prompt::submit;
-pub(crate) use stream::wrap as wrap_stream;
 
 mod commands;
 mod patch_events;
