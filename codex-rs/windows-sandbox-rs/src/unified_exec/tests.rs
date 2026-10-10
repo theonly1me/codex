@@ -739,7 +739,13 @@ fn legacy_workspace_write_delete_is_limited_to_writable_roots() {
     let runtime = current_thread_runtime();
     runtime.block_on(async move {
         // Keep writable roots out of USERPROFILE exclusions such as AppData.
-        let test_root = TempDir::new_in(sandbox_cwd()).expect("create legacy delete test root");
+        let user_profile = std::env::var_os("USERPROFILE").expect("Windows user profile");
+        let test_root = TempDir::new_in(user_profile).expect("create legacy delete test root");
+        assert!(
+            !crate::acl::path_has_standard_user_mutation_allow(test_root.path())
+                .expect("check legacy delete fixture permissions"),
+            "legacy delete fixture permits writes from broad standard-user principals"
+        );
         let codex_home = sandbox_home("legacy-delete-writable-roots");
         let workspace = test_root.path().join("workspace");
         let temp_root = test_root.path().join("temp");

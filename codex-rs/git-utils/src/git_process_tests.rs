@@ -71,8 +71,20 @@ async fn assert_timed_out_git_wrapper_does_not_leave_child_process_running(
             tokio::time::sleep(Duration::from_millis(25)).await;
         }
     })
-    .await
-    .expect("wait for Git wrapper child readiness");
+    .await;
+    let child_pid = match child_pid {
+        Ok(child_pid) => child_pid,
+        Err(error) => {
+            wrapper.start_kill().expect("stop unready Git wrapper");
+            drop(process_tree);
+            let output =
+                tokio::time::timeout(Duration::from_secs(5), wrapper.wait_with_output()).await;
+            panic!(
+                "wait for Git wrapper child readiness: {error}; child_pid={:?}; output={output:?}",
+                std::fs::read_to_string(&child_pid_file)
+            );
+        }
+    };
 
     if matches!(wrapper_lifetime, GitWrapperLifetime::ExitBeforeTimeout) {
         std::fs::write(&release_wrapper_file, "release").expect("release Git wrapper");
