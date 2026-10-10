@@ -316,6 +316,8 @@ if [[ "${RUNNER_OS:-}" == "Windows" && $windows_cross_compile -eq 1 && -z "${BUI
   )
 fi
 
+source "$(dirname "${BASH_SOURCE[0]}")/../fork/local-bazel.sh"
+
 if [[ -n "${BAZEL_REPO_CONTENTS_CACHE:-}" ]]; then
   # Windows self-hosted runners can run multiple Bazel jobs concurrently. Give
   # each job its own repo contents cache so they do not fight over the shared

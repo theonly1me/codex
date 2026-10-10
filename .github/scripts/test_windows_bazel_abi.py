@@ -27,6 +27,7 @@ class WindowsBazelAbiTest(unittest.TestCase):
             environment.update(
                 {
                     "RUNNER_OS": "Windows",
+                    "RUNNER_ENVIRONMENT": "github-hosted",
                     "BUILDBUDDY_API_KEY": "",
                     "CODEX_BAZEL_BIN": str(executable),
                     "CODEX_BAZEL_WINDOWS_PATH": str(folder),
@@ -55,6 +56,22 @@ class WindowsBazelAbiTest(unittest.TestCase):
             self.assertIn("--repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=0", flags)
             self.assertIn(
                 "--extra_toolchains=//.github/fork:native_windows_msvc", flags
+            )
+            self.assertIn("--disk_cache=", flags)
+            self.assertIn("--test_env=RUST_TEST_THREADS=1", flags)
+            self.assertIn(
+                "--test_env=CODEX_BAZEL_TEST_SKIP_FILTERS="
+                "command_safety::powershell_parser::tests::,"
+                "suite::code_mode::code_mode_can_call_hidden_dynamic_tools,"
+                "tests::windows_tests::conpty_ctrl_c_interrupts_powershell_foreground_child",
+                flags,
+            )
+            self.assertIn(
+                "--@rules_rust//rust/settings:extra_rustc_flag=-Cdebuginfo=0", flags
+            )
+            self.assertIn(
+                "--@rules_rust//rust/settings:extra_exec_rustc_flag=-Cdebuginfo=0",
+                flags,
             )
 
 
