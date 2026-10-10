@@ -11,10 +11,14 @@ export function memberOf(group, member) {
 }
 
 export async function read(engine, reference) {
-  if (reference.source) return reference.map(await read(engine, reference.source));
-  if (reference.group) return (await read(engine, reference.group))[reference.member];
+  if (reference.source)
+    return reference.map(await read(engine, reference.source));
+  if (reference.group)
+    return (await read(engine, reference.group))[reference.member];
   const stored = await engine.state.get(reference.point);
-  return stored === undefined || stored === null ? structuredClone(reference.initial) : stored;
+  return stored === undefined || stored === null
+    ? structuredClone(reference.initial)
+    : stored;
 }
 
 const updates = new Map();

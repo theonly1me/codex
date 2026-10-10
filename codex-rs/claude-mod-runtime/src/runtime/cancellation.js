@@ -4,14 +4,21 @@ class ModAbortSignal {
   aborted = false;
   reason;
   listeners = new Set();
-  addEventListener(name, callback) { if (name === "abort") this.listeners.add(callback); }
-  removeEventListener(name, callback) { if (name === "abort") this.listeners.delete(callback); }
-  throwIfAborted() { if (this.aborted) throw this.reason; }
+  addEventListener(name, callback) {
+    if (name === "abort") this.listeners.add(callback);
+  }
+  removeEventListener(name, callback) {
+    if (name === "abort") this.listeners.delete(callback);
+  }
+  throwIfAborted() {
+    if (this.aborted) throw this.reason;
+  }
   abort(reason) {
     if (this.aborted) return;
     this.aborted = true;
     this.reason = reason;
-    for (const listener of this.listeners) listener({ type: "abort", target: this });
+    for (const listener of this.listeners)
+      listener({ type: "abort", target: this });
     this.listeners.clear();
   }
 }
@@ -26,4 +33,6 @@ export function abort(id) {
   controllers.delete(id);
 }
 
-export function finish(id) { controllers.delete(id); }
+export function finish(id) {
+  controllers.delete(id);
+}
