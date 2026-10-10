@@ -263,6 +263,9 @@ if [[ "${RUNNER_OS:-}" == "Windows" && $windows_cross_compile -eq 1 && -z "${BUI
 fi
 
 post_config_bazel_args=()
+if [[ "${RUNNER_OS:-}" == "Windows" && "${CODEX_CI_MSVC_RUNTIME_LICENSE_ACCEPTED:-}" == "1" ]]; then
+  post_config_bazel_args+=(--repo_env=BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA=1)
+fi
 if [[ "${RUNNER_OS:-}" == "Windows" && $windows_msvc_host_platform -eq 1 ]]; then
   has_host_platform_override=0
   for arg in "${bazel_args[@]}"; do

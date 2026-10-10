@@ -102,3 +102,8 @@ gh variable set CODEX_CI_RUNNERS --repo theonly1me/codex < .github/fork/ci-runne
 The policy uses standard Linux, Windows, and macOS runners.
 The x86 macOS target uses an Intel host.
 The ARM macOS target uses an ARM host.
+
+Windows voice builds require the operator's MSVC license acknowledgement.
+After accepting Microsoft's terms, set the repository variable `CODEX_CI_MSVC_RUNTIME_LICENSE_ACCEPTED` to `1`.
+The wrapper passes the MSVC repository flag only on Windows with that explicit value.
+An unset variable retains the native license check.

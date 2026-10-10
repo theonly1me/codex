@@ -3,6 +3,9 @@ on:
   workflow_call:
   workflow_dispatch:
 
+env:
+  CODEX_CI_MSVC_RUNTIME_LICENSE_ACCEPTED: ${{ vars.CODEX_CI_MSVC_RUNTIME_LICENSE_ACCEPTED }}
+
 jobs:
   # --- Detect changed paths so the fast PR workflow only runs relevant jobs ---
   changed:
