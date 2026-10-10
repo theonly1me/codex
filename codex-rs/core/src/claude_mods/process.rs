@@ -61,7 +61,7 @@ pub(crate) async fn run(session: &Arc<Session>, call: &HostCall) -> ModResult<Va
         payload: payload.clone(),
     };
     let handler = ExecCommandHandler::one_shot(ExecCommandHandlerOptions {
-        allow_login_shell: false,
+        include_login_parameter: false,
         allow_tty: false,
         exec_permission_approvals_enabled: true,
         include_environment_id: false,

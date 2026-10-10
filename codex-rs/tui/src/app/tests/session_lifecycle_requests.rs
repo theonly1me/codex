@@ -49,6 +49,9 @@ async fn daybreak_command_persists_and_confirms_each_selection() -> Result<()> {
     use codex_protocol::turn_input::CyberAccessProgram;
 
     let (mut app, mut events, mut ops) = make_test_app_with_channels().await;
+    app.config.features.enable(Feature::CliDaybreak)?;
+    app.chat_widget
+        .set_feature_enabled(Feature::CliDaybreak, /*enabled*/ true);
     let (mut server, requests, proxy) = start_recording_app_server(
         &app.config,
         /*blocked_thread_list*/ None,
@@ -168,14 +171,57 @@ async fn daybreak_command_persists_and_confirms_each_selection() -> Result<()> {
         background_thread_id,
         crate::app::side::SideThreadState::new(thread_id),
     );
-    app.submit_thread_op(&mut server, background_thread_id, turn)
+    app.submit_thread_op(&mut server, background_thread_id, turn.clone())
         .await?;
     let turns = recorded_params(&requests, "turn/start");
     assert_eq!(turns.len(), 3);
     assert_eq!(turns[0]["cyberAccessProgram"], "standard");
     assert_eq!(turns[1]["cyberAccessProgram"], "daybreakBlue");
     assert_eq!(turns[2]["cyberAccessProgram"], "standard");
-    app.chat_widget.set_daybreak_enabled(/*enabled*/ false);
+    app.chat_widget
+        .set_feature_enabled(Feature::CliDaybreak, /*enabled*/ false);
+    for target in [thread_id, background_thread_id] {
+        app.submit_thread_op(&mut server, target, turn.clone())
+            .await?;
+    }
+    let turns = recorded_params(&requests, "turn/start");
+    assert!(turns[3]["cyberAccessProgram"].is_null());
+    assert!(turns[4]["cyberAccessProgram"].is_null());
+    app.chat_widget
+        .set_feature_enabled(Feature::CliDaybreak, /*enabled*/ true);
+    app.chat_widget.set_daybreak_enabled(/*enabled*/ true);
+    app.chat_widget.update_account_state(
+        Some(crate::status::StatusAccountDisplay::ApiKey),
+        /*plan_type*/ None,
+        /*has_chatgpt_account*/ false,
+        /*has_codex_backend_auth*/ false,
+    );
+    assert!(!app.chat_widget.daybreak_enabled);
+    for (cli_daybreak, api_key_cyber_access_programs, enabled) in [
+        (false, false, true),
+        (false, true, true),
+        (true, false, true),
+        (true, true, true),
+        (true, true, false),
+    ] {
+        app.chat_widget
+            .set_feature_enabled(Feature::CliDaybreak, cli_daybreak);
+        app.chat_widget.set_feature_enabled(
+            Feature::ApiKeyCyberAccessPrograms,
+            api_key_cyber_access_programs,
+        );
+        app.chat_widget.set_daybreak_enabled(enabled);
+        app.submit_thread_op(&mut server, thread_id, turn.clone())
+            .await?;
+    }
+    let turns = recorded_params(&requests, "turn/start");
+    assert_eq!(
+        turns[5..]
+            .iter()
+            .map(|turn| turn["cyberAccessProgram"].as_str())
+            .collect::<Vec<_>>(),
+        vec![None, None, None, Some("daybreakBlue"), Some("standard")]
+    );
     while events.try_recv().is_ok() {}
 
     let missing_thread_id = ThreadId::new();
@@ -303,6 +349,8 @@ pub(super) enum HistoryCapabilities {
     ItemsAndSummaryTurnsFail,
     ThreadListFails,
     ThreadStartFails,
+    ThreadStartWhileShuttingDown,
+    ThreadStartDuringLegacyShutdown,
     ConfigReadUnsupported(i64),
     ConfigReadFails,
     ConfigReadUnknownVoice,
@@ -591,18 +639,34 @@ pub(super) async fn start_recording_app_server_with_realtime_speech(
                                 message: "method not found".to_string(),
                             },
                         })
-                    } else if history_capabilities == HistoryCapabilities::ThreadStartFails
-                        && request.method == "thread/start"
+                    } else if matches!(
+                        history_capabilities,
+                        HistoryCapabilities::ThreadStartFails
+                            | HistoryCapabilities::ThreadStartWhileShuttingDown
+                            | HistoryCapabilities::ThreadStartDuringLegacyShutdown
+                    ) && request.method == "thread/start"
                     {
+                        let (code, message, data) = match history_capabilities {
+                            HistoryCapabilities::ThreadStartWhileShuttingDown => (
+                                -32600,
+                                "not accepting new actions",
+                                Some(serde_json::json!({ "reason": "serverShuttingDown" })),
+                            ),
+                            HistoryCapabilities::ThreadStartDuringLegacyShutdown => {
+                                (-32600, "Server is draining; retry after reconnecting", None)
+                            }
+                            _ => (-32603, "replacement unavailable", None),
+                        };
                         JSONRPCMessage::Error(JSONRPCError {
                             id: request_id,
                             error: JSONRPCErrorError {
-                                code: -32603,
-                                data: None,
-                                message: "replacement unavailable".to_string(),
+                                code,
+                                data,
+                                message: message.to_string(),
                             },
                         })
                     } else if request.method == "thread/list"
+                        && params.is_some_and(|params| params["sortKey"] == "recency_at")
                         && std::mem::take(&mut reject_thread_list)
                     {
                         JSONRPCMessage::Error(JSONRPCError {
@@ -988,11 +1052,13 @@ fn spawn_approved_task_tool_call(
     app_server
         .thread_tool_transport()
         .configure(&mut thread_start_params);
+    let features = app.config.features.get().clone();
     tokio::spawn(async move {
         let response = crate::dynamic_tools::execute(
             request_handle,
             params,
             thread_start_params,
+            features,
             status_updates,
             Some(&app_event_tx),
         )
@@ -1756,7 +1822,15 @@ async fn embedded_server_rejects_unowned_dynamic_tool_calls() -> Result<()> {
 
 #[tokio::test]
 async fn dynamic_tool_requests_ignore_other_namespaces_and_dispatch_tui_namespace() -> Result<()> {
+    check_dynamic_tool_requests(/*rollout_enabled*/ true).await?;
+    check_dynamic_tool_requests(/*rollout_enabled*/ false).await
+}
+
+async fn check_dynamic_tool_requests(rollout_enabled: bool) -> Result<()> {
     let (mut app, mut events, _ops) = make_test_app_with_channels().await;
+    app.config
+        .features
+        .set_enabled(Feature::CliDaybreak, rollout_enabled)?;
     let codex_home = tempdir()?;
     let backend = wiremock::MockServer::start().await;
     let backend_url = format!("{}/backend-api", backend.uri());
@@ -2069,7 +2143,7 @@ async fn dynamic_tool_requests_ignore_other_namespaces_and_dispatch_tui_namespac
     );
     assert_eq!(
         recorded_params(&requests, "thread/start").last().unwrap()["daybreakEnabled"],
-        true
+        serde_json::json!(rollout_enabled.then_some(true))
     );
     assert_eq!(
         recorded_params(&requests, "thread/start")
@@ -2084,7 +2158,10 @@ async fn dynamic_tool_requests_ignore_other_namespaces_and_dispatch_tui_namespac
     let turn = recorded_params(&requests, "turn/start")
         .pop()
         .expect("background task turn request");
-    assert_eq!(turn["cyberAccessProgram"], "daybreakBlue");
+    assert_eq!(
+        turn["cyberAccessProgram"],
+        serde_json::json!(rollout_enabled.then_some("daybreakBlue"))
+    );
     assert_eq!(turn["input"], serde_json::json!([]));
     assert_eq!(
         turn["toolOutput"],
@@ -2166,7 +2243,10 @@ async fn dynamic_tool_requests_ignore_other_namespaces_and_dispatch_tui_namespac
     };
     assert!(response.success, "{response:?}");
     let turn = &recorded_params(&requests, "turn/start")[1];
-    assert_eq!(turn["cyberAccessProgram"], "daybreakBlue");
+    assert_eq!(
+        turn["cyberAccessProgram"],
+        serde_json::json!(rollout_enabled.then_some("daybreakBlue"))
+    );
     assert_eq!(turn["input"], serde_json::json!([]));
     assert_eq!(
         turn["toolOutput"],
@@ -2273,6 +2353,7 @@ async fn older_pagination_reconciles_review_prompts_across_page_boundaries() -> 
         user_item("newer-visible-prompt", "newer visible prompt"),
     ]);
     let events = std::iter::once(EventMsg::TurnStarted(TurnStartedEvent {
+        turn_attribution: None,
         turn_id: "cross-page-review-turn".to_string(),
         root_turn_id: None,
         trace_id: None,
@@ -2436,6 +2517,7 @@ async fn transcript_alt_beginning_loads_every_older_history_page() -> Result<()>
         .map(serde_json::from_str::<serde_json::Value>)
         .collect::<Result<Vec<_>, _>>()?;
     let events = std::iter::once(EventMsg::TurnStarted(TurnStartedEvent {
+        turn_attribution: None,
         turn_id: "multi-page-turn".to_string(),
         root_turn_id: None,
         trace_id: None,
@@ -2670,6 +2752,7 @@ async fn remote_legacy_history_start_negotiates_once_for_resume_and_fork() -> Re
             }),
         },
         codex_app_server_protocol::ThreadStartParams::default(),
+        app.config.features.get().clone(),
         status_updates,
         /*app_event_tx*/ None,
     )
@@ -2850,6 +2933,7 @@ async fn underfilled_scrollback_fetches_older_pages_without_opening_the_transcri
         .map(serde_json::from_str::<serde_json::Value>)
         .collect::<Result<Vec<_>, _>>()?;
     let events = std::iter::once(EventMsg::TurnStarted(TurnStartedEvent {
+        turn_attribution: None,
         turn_id: "scrollback-pagination-turn".to_string(),
         root_turn_id: None,
         trace_id: None,
@@ -3246,6 +3330,7 @@ async fn agents_overview_seeds_loaded_threads_when_recent_listing_is_unavailable
         let mut sort_keys = list_requests
             .iter()
             .map(|params| params["sortKey"].as_str().unwrap())
+            .filter(|sort_key| *sort_key != "section_position")
             .collect::<Vec<_>>();
         sort_keys.sort_unstable();
         assert_eq!(sort_keys, expected_sort_keys);
@@ -4739,11 +4824,12 @@ fn session_lifecycle_avoids_redundant_subagent_metadata_reads() -> Result<()> {
                 })
                 .await?;
                 if let AppEvent::AgentPickerThreadsLoaded {
-                    result: Ok(threads),
+                    result: Ok(refresh),
                     ..
                 } = &mut completion
                 {
-                    let child = threads
+                    let child = refresh
+                        .threads
                         .iter_mut()
                         .find(|thread| thread.id == child_thread_id.to_string())
                         .expect("root-scoped response includes the cached child");
@@ -4753,7 +4839,7 @@ fn session_lifecycle_avoids_redundant_subagent_metadata_reads() -> Result<()> {
                     child.status = ThreadStatus::Active {
                         active_flags: Vec::new(),
                     };
-                    threads.push(discovered);
+                    refresh.threads.push(discovered);
                 }
                 Box::pin(app.handle_event(&mut tui, &mut app_server, completion)).await?;
                 assert_eq!(
@@ -4915,6 +5001,7 @@ async fn command_center_read_only_open_requests_and_failure_preservation() -> Re
                 let first_ordinal = contents.lines().count();
                 let events = [
                     EventMsg::TurnStarted(TurnStartedEvent {
+                        turn_attribution: None,
                         turn_id: format!("saved-turn-{index}"),
                         root_turn_id: None,
                         trace_id: None,

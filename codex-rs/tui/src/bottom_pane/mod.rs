@@ -2,7 +2,10 @@
 //!
 //! The pane owns the [`ChatComposer`] (editable prompt input) and a stack of transient
 //! [`BottomPaneView`]s (popups/modals) that temporarily replace the composer for focused
-//! interactions like selection lists.
+//! interactions like selection lists. Centered views retain earlier views as a backdrop,
+//! while input remains routed exclusively to the top of the stack.
+//! Modal insertion, replacement, and dismissal invalidate pending key chords, including when a
+//! deferred prompt appears or an approval queue advances without changing keymap contexts.
 //!
 //! Input routing is layered: `BottomPane` decides which local surface receives a key (view vs
 //! composer), while higher-level intent such as "interrupt" or "quit" is decided by the parent
@@ -47,6 +50,7 @@ use crate::terminal_palette::effective_stdout_color_level;
 use crate::tui::FrameRequester;
 pub(crate) use bottom_pane_view::BottomPaneView;
 pub(crate) use bottom_pane_view::ViewCompletion;
+pub(crate) use bottom_pane_view::ViewPresentation;
 use codex_app_server_protocol::SkillMetadata;
 use codex_app_server_protocol::ToolRequestUserInputParams;
 use codex_features::Features;
@@ -119,6 +123,9 @@ pub(crate) use voice_strip::VoiceStripState;
 mod bottom_pane_view;
 mod composer_gap;
 mod effort_ignition;
+mod view_stack;
+pub(crate) use view_stack::CenteredView;
+pub(crate) use view_stack::DialogOverlay;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct LocalImageAttachment {
@@ -283,6 +290,7 @@ pub(crate) struct BottomPane {
 
     /// Stack of views displayed instead of the composer (e.g. popups/modals).
     view_stack: Vec<Box<dyn BottomPaneView>>,
+    pub(crate) key_chord_reset_requested: bool,
     warnings_view: Option<warnings_view::WarningsView>,
     /// A keep press can close the viewer; its remaining repeats must not edit the draft.
     pub(crate) suppress_warning_keep_repeat: bool,
@@ -371,6 +379,7 @@ impl BottomPane {
         Self {
             composer,
             view_stack: Vec::new(),
+            key_chord_reset_requested: false,
             warnings_view: None,
             suppress_warning_keep_repeat: false,
             questions: None,
@@ -716,6 +725,7 @@ impl BottomPane {
     }
 
     fn push_view(&mut self, view: Box<dyn BottomPaneView>) {
+        self.key_chord_reset_requested = true;
         self.view_stack.push(view);
         self.schedule_active_view_frame();
         self.request_redraw();
@@ -745,6 +755,7 @@ impl BottomPane {
     }
 
     fn on_view_stack_depth_decreased(&mut self) {
+        self.key_chord_reset_requested = true;
         if self.view_stack.is_empty() {
             self.on_active_view_complete();
         }
@@ -1062,6 +1073,7 @@ impl BottomPane {
             self.on_active_view_complete();
         }
         if needs_redraw || view_complete {
+            self.key_chord_reset_requested = true;
             self.request_redraw();
         }
     }
@@ -1468,13 +1480,24 @@ impl BottomPane {
             return false;
         }
 
+        let search_query = if params.is_searchable {
+            self.view_stack
+                .last()
+                .and_then(|view| view.search_query())
+                .map(str::to_string)
+        } else {
+            None
+        };
         self.view_stack.pop();
         self.apply_standard_popup_hint(&mut params);
-        let view = list_selection_view::ListSelectionView::new(
+        let mut view = list_selection_view::ListSelectionView::new(
             params,
             self.app_event_tx.clone(),
             self.keymap.list.clone(),
         );
+        if let Some(search_query) = search_query {
+            view.set_search_query(search_query);
+        }
         self.push_view(Box::new(view));
         true
     }
@@ -1504,6 +1527,7 @@ impl BottomPane {
         view.dismiss_after_child_accept = self.view_stack[index].dismiss_after_child_accept();
         self.view_stack[index] = Box::new(view);
         if replaces_active_view {
+            self.key_chord_reset_requested = true;
             self.schedule_active_view_frame();
         }
         self.request_redraw();
@@ -1612,6 +1636,7 @@ impl BottomPane {
             return false;
         }
 
+        self.key_chord_reset_requested = true;
         self.view_stack.pop();
         self.request_redraw();
         true
@@ -1630,6 +1655,7 @@ impl BottomPane {
         let removed_active_view = index + 1 == self.view_stack.len();
         self.view_stack.remove(index);
         if removed_active_view {
+            self.key_chord_reset_requested = true;
             self.schedule_active_view_frame();
         }
         self.request_redraw();
@@ -1740,6 +1766,11 @@ impl BottomPane {
                 .is_some_and(bottom_pane_view::BottomPaneView::terminal_title_requires_action)
     }
 
+    pub(crate) fn has_centered_view(&self) -> bool {
+        self.active_view()
+            .is_some_and(|view| view.presentation() == ViewPresentation::Centered)
+    }
+
     pub(crate) fn has_active_view(&self) -> bool {
         self.warnings_view.is_some() || self.has_active_modal()
     }
@@ -1789,6 +1820,10 @@ impl BottomPane {
     /// running and some are not.
     pub(crate) fn no_modal_or_popup_active(&self) -> bool {
         self.can_launch_external_editor()
+    }
+
+    pub(crate) fn clear_composer_selection(&mut self) {
+        self.composer.clear_mouse_selection();
     }
 
     pub(crate) fn end_composer_drag(&mut self) {
@@ -2180,7 +2215,35 @@ impl BottomPane {
 
     pub(crate) fn as_renderable_with_options<'a>(
         &'a self,
+        options: ComposerRenderOptions<'a>,
+    ) -> RenderableItem<'a> {
+        self.renderable_for_views(options, &self.view_stack)
+    }
+
+    pub(crate) fn centered_dialog(&self) -> Option<CenteredView<'_>> {
+        self.active_view()
+            .filter(|view| {
+                !self.warnings_active() && view.presentation() == ViewPresentation::Centered
+            })
+            .map(CenteredView)
+    }
+
+    pub(crate) fn backdrop_with_options<'a>(
+        &'a self,
+        options: ComposerRenderOptions<'a>,
+    ) -> RenderableItem<'a> {
+        let views = if self.centered_dialog().is_some() {
+            &self.view_stack[..self.view_stack.len() - 1]
+        } else {
+            &self.view_stack
+        };
+        self.renderable_for_views(options, views)
+    }
+
+    fn renderable_for_views<'a>(
+        &'a self,
         mut options: ComposerRenderOptions<'a>,
+        views: &'a [Box<dyn BottomPaneView>],
     ) -> RenderableItem<'a> {
         if self.warnings_active()
             && let Some(warnings) = &self.warnings_view
@@ -2192,8 +2255,12 @@ impl BottomPane {
         {
             banner.visible.set(false);
         }
-        if let Some(view) = self.active_view() {
-            RenderableItem::Borrowed(view)
+        if let Some(view) = views.last() {
+            if view.presentation() == ViewPresentation::Centered {
+                RenderableItem::Owned(Box::new(view_stack::ViewStack(views)))
+            } else {
+                RenderableItem::Borrowed(view.as_ref())
+            }
         } else {
             let mut flex = FlexRenderable::new();
             if let Some(banner) = self
@@ -3531,7 +3598,7 @@ mod tests {
                 short_description: None,
                 interface: None,
                 dependencies: None,
-                path: test_path_buf("/tmp/test-skill/SKILL.md").abs(),
+                path: test_path_buf("/tmp/test-skill/SKILL.md").abs().into(),
                 scope: crate::test_support::skill_scope_user(),
                 enabled: true,
                 plugin_id: None,

@@ -38,16 +38,6 @@ pub(crate) async fn events(invocation: &ToolInvocation, hunk: Hunk) -> ModResult
                     path: &uri,
                     original_contents: &original,
                     chunks: &chunks,
-                    update_file_mode: if invocation
-                        .turn
-                        .config
-                        .features
-                        .enabled(codex_features::Feature::ApplyPatchPreserveLineEndings)
-                    {
-                        codex_apply_patch::ApplyPatchFileUpdateMode::PreserveLineEndings
-                    } else {
-                        codex_apply_patch::ApplyPatchFileUpdateMode::NormalizeToLf
-                    },
                 })
                 .map_err(|error| error.to_string())?;
             if let Some(destination) = &move_path {
